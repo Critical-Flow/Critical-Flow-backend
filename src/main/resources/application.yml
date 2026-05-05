@@ -19,3 +19,27 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
     show-sql: false
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      embedding:
+        options:
+          model: text-embedding-3-small
+      chat:
+        options:
+          model: gpt-4o
+          temperature: 0.3
+
+    vectorstore:
+      chroma:
+        client:
+          host: ${CHROMA_HOST:http://localhost}
+          port: ${CHROMA_PORT:8000}
+        collection-name: criticalflow-notes
+        initialize-schema: true
+
+rag:
+  similarity-threshold: 0.75
+  max-results: 4
+  focus-lookback-minutes: 15
