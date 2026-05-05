@@ -4,3 +4,18 @@ server:
 spring:
   application:
     name: criticalflow
+
+  datasource:
+    url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/criticalflow?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:0000}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+    show-sql: false
