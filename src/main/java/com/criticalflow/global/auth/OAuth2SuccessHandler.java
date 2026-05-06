@@ -5,7 +5,7 @@ import com.criticalflow.domain.user.repository.UserRepository;
 import com.criticalflow.global.auth.jwt.JwtProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -14,11 +14,21 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 @Component
-@RequiredArgsConstructor
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtProvider jwtProvider;
     private final UserRepository userRepository;
+    private final String frontendCallbackUrl;
+
+    public OAuth2SuccessHandler(
+            JwtProvider jwtProvider,
+            UserRepository userRepository,
+            @Value("${frontend.callback-url}") String frontendCallbackUrl
+    ) {
+        this.jwtProvider = jwtProvider;
+        this.userRepository = userRepository;
+        this.frontendCallbackUrl = frontendCallbackUrl;
+    }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -31,7 +41,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         String token = jwtProvider.generateToken(user.getUserId());
 
-        response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write("{\"token\":\"" + token + "\"}");
+        getRedirectStrategy().sendRedirect(request, response, frontendCallbackUrl + "?token=" + token);
     }
 }
