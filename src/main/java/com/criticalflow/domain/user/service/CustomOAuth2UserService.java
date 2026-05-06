@@ -28,8 +28,10 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
         Long githubId = ((Number) attributes.get("id")).longValue();
-        String name = (String) attributes.get("name");
-        String email = (String) attributes.get("email");
+        String name = (String) attributes.getOrDefault("name", attributes.get("login").toString());
+        String email = attributes.get("email") != null
+                ? (String) attributes.get("email")
+                : githubId + "@users.noreply.github.com";
 
         userRepository.findByGithubId(githubId)
                 .orElseGet(() -> userRepository.save(
