@@ -54,3 +54,7 @@ rag:
   similarity-threshold: 0.75
   max-results: 4
   focus-lookback-minutes: 15
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
