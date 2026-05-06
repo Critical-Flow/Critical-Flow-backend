@@ -41,3 +41,13 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Claude Code ###
+.claude/
+
+### IntelliJ IDEA — local IDE settings ###
+.idea/copilot.data.migration.agent.xml
+.idea/copilot.data.migration.ask2agent.xml
+.idea/gradle.xml
+.idea/misc.xml
+.idea/vcs.xml
