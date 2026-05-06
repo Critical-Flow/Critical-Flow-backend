@@ -47,6 +47,8 @@ spring:
         client:
           host: ${CHROMA_HOST:http://localhost}
           port: ${CHROMA_PORT:8000}
+        tenant-name: ${CHROMA_TENANT:default_tenant}
+        database-name: ${CHROMA_DATABASE:default_database}
         collection-name: criticalflow-notes
         initialize-schema: true
 
