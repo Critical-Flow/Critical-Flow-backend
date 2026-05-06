@@ -5,6 +5,17 @@ spring:
   application:
     name: criticalflow
 
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope:
+              - read:user
+              - user:email
+
   datasource:
     url: ${DB_URL:jdbc:mysql://127.0.0.1:3306/criticalflow?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
     username: ${DB_USERNAME:root}
