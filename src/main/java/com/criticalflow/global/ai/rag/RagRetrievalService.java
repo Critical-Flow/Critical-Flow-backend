@@ -27,13 +27,14 @@ public class RagRetrievalService {
      *
      * 1차 필터 — Chroma의 similarity threshold (0.75)
      * 2차 필터 — 키워드 오버랩 기반 topic mismatch 제거 (LAW 4: RAG 노이즈 차단)
+     * excludeNoteId — 현재 노트 자신이 similarity 1.0으로 검색되는 문제 방지
      */
-    public RagContext retrieve(String queryText, Long userId) {
+    public RagContext retrieve(String queryText, Long userId, Long excludeNoteId) {
         SearchRequest request = SearchRequest.builder()
                 .query(queryText)
-                .topK(maxResults + 2)                      // 여유 있게 가져와서 2차 필터 후 자름
+                .topK(maxResults + 2)
                 .similarityThreshold(similarityThreshold)
-                .filterExpression("user_id == '" + userId + "'")
+                .filterExpression("user_id == '" + userId + "' && note_id != '" + excludeNoteId + "'")
                 .build();
 
         List<Document> candidates = vectorStore.similaritySearch(request);
