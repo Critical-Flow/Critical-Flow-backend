@@ -69,10 +69,10 @@ public class NoteService {
 
     private StudyNote getOwnedNote(Long userId, Long noteId) {
         StudyNote note = noteRepository.findById(noteId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found: " + noteId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found"));
 
         if (!note.getUserId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No permission for note: " + noteId);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
         }
 
         return note;

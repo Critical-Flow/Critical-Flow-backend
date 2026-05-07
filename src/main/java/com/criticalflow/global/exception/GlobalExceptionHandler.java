@@ -1,5 +1,6 @@
 package com.criticalflow.global.exception;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -22,7 +23,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException e) {
-        String code = Integer.toString(e.getStatusCode().value());
+        HttpStatus status = HttpStatus.resolve(e.getStatusCode().value());
+        String code = status != null
+                ? status.name()
+                : Integer.toString(e.getStatusCode().value());
         return ResponseEntity.status(e.getStatusCode())
                 .body(new ErrorResponse(code, e.getReason()));
     }
