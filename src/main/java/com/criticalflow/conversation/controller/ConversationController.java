@@ -25,15 +25,16 @@ public class ConversationController {
 
     /**
      * 새 대화 세션을 시작한다.
-     * noteId, userId, type(QUESTION|QUIZ)를 받아 conversation을 생성하고 conversationId를 반환.
+     * 대화 생성 직후 AI가 노트를 분석해 첫 질문을 자동 생성한다.
      */
     @PostMapping
     public ResponseEntity<ConversationResponse> start(@RequestBody StartConversationRequest request) {
         AiConversation conversation = conversationService.start(
                 request.noteId(), request.userId(), request.type()
         );
+        TutorResponse firstQuestion = aiTutorService.generateFirstQuestion(conversation.getConversationId());
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ConversationResponse.from(conversation));
+                .body(ConversationResponse.from(conversation, firstQuestion.getContent()));
     }
 
     /**
