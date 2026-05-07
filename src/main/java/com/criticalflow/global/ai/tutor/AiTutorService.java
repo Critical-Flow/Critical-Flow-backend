@@ -77,13 +77,15 @@ public class AiTutorService {
 
         RagContext ragContext = ragRetrievalService.retrieve(note.getContent(), note.getUserId(), note.getNoteId());
         String focusEvents = focusEventFormatter.format(note.getSessionId());
+        boolean hasCodeBlock = note.getContent().contains("```");
 
         String resolvedPrompt = resolvePrompt(
                 note.getContent(),
                 ragContext.format(),
                 focusEvents,
                 conversation.getType().name(),
-                questionCount
+                questionCount,
+                hasCodeBlock
         );
 
         List<Message> messages = buildMessages(resolvedPrompt, history, userMessage);
@@ -132,13 +134,14 @@ public class AiTutorService {
     }
 
     private String resolvePrompt(String currentNote, String ragContext, String focusEvents,
-                                  String conversationType, long questionCount) {
+                                  String conversationType, long questionCount, boolean hasCodeBlock) {
         return systemPromptTemplate
                 .replace("{current_note}", currentNote)
                 .replace("{rag_context}", ragContext)
                 .replace("{focus_events}", focusEvents)
                 .replace("{conversation_type}", conversationType)
-                .replace("{question_count}", questionCount + " / " + MAX_QUESTIONS);
+                .replace("{question_count}", questionCount + " / " + MAX_QUESTIONS)
+                .replace("{has_code}", String.valueOf(hasCodeBlock));
     }
 
     private List<Message> buildMessages(String systemPrompt, List<AiMessage> history, String userMessage) {
