@@ -28,6 +28,10 @@ public class AiConversation {
     @Column(nullable = false)
     private ConversationType type;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "question_type")
+    private QuestionType questionType;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

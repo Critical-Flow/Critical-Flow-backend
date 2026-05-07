@@ -30,7 +30,7 @@ public class ConversationController {
     @PostMapping
     public ResponseEntity<ConversationResponse> start(@RequestBody StartConversationRequest request) {
         AiConversation conversation = conversationService.start(
-                request.noteId(), request.userId(), request.type()
+                request.noteId(), request.userId(), request.type(), request.questionType()
         );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ConversationResponse.from(conversation));
