@@ -56,17 +56,20 @@ public class RagRetrievalService {
     /**
      * 2차 topic mismatch 필터.
      * Chroma threshold를 간신히 넘긴 노이즈 청크를 제거한다.
-     * 의미 있는 키워드(4자 초과)의 최소 20%가 겹쳐야 통과.
+     * 한국어 포함 시 최소 길이 1자, 영어는 3자 기준 — 의미 있는 키워드의 최소 20%가 겹쳐야 통과.
      */
     private boolean isTopicRelevant(Document doc, String queryText) {
         String[] keywords = queryText.toLowerCase().split("\\s+");
         String content = doc.getText().toLowerCase();
 
-        long significant = Arrays.stream(keywords).filter(k -> k.length() > 3).count();
+        boolean hasKorean = queryText.chars().anyMatch(c -> c >= 0xAC00 && c <= 0xD7A3);
+        int minLength = hasKorean ? 1 : 3;
+
+        long significant = Arrays.stream(keywords).filter(k -> k.length() >= minLength).count();
         if (significant == 0) return true;
 
         long matched = Arrays.stream(keywords)
-                .filter(k -> k.length() > 3)
+                .filter(k -> k.length() >= minLength)
                 .filter(content::contains)
                 .count();
 

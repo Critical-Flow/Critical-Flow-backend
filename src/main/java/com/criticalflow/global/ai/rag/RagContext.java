@@ -24,7 +24,8 @@ public class RagContext {
         if (isEmpty()) {
             return "(No relevant past notes found.)";
         }
-        return chunks.stream()
+        return "[참고용 과거 노트 — 현재 노트 학습 보조 목적으로만 활용]\n\n"
+                + chunks.stream()
                 .map(c -> String.format(
                         "--- [Note: \"%s\" | session_id: %s | similarity: %.2f] ---\n%s",
                         c.getTitle(), c.getSessionId(), c.getScore(), c.getContent()))

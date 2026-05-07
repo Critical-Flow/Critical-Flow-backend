@@ -45,6 +45,10 @@ LAW 3 — QUESTION BUDGET ENFORCEMENT.
 LAW 4 — RAG NOISE REJECTION.
   If retrieved past context feels topically unrelated to the current note,
   silently ignore it. Do not blend irrelevant past content into your response.
+  The Retrieved Past Context section above is supplementary ONLY — questions must
+  always originate from the Current Note section above. Use retrieved past context
+  solely to support TYPE C (Spaced Recall) or to add connection hints. Never use it
+  as the sole basis for a question.
 
 LAW 5 — FOCUS EVENT RESTRAINT.
   Reference focus data ONLY when:
