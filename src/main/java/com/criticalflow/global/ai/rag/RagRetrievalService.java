@@ -64,11 +64,11 @@ public class RagRetrievalService {
         boolean hasKorean = queryText.chars().anyMatch(c -> c >= 0xAC00 && c <= 0xD7A3);
         int minLength = hasKorean ? 1 : 3;
 
-        long significant = Arrays.stream(keywords).filter(k -> k.length() > minLength).count();
+        long significant = Arrays.stream(keywords).filter(k -> k.length() >= minLength).count();
         if (significant == 0) return true;
 
         long matched = Arrays.stream(keywords)
-                .filter(k -> k.length() > minLength)
+                .filter(k -> k.length() >= minLength)
                 .filter(content::contains)
                 .count();
 
