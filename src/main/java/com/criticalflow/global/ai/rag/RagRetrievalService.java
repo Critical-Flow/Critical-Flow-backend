@@ -86,7 +86,7 @@ public class RagRetrievalService {
 
     private List<String> extractKeyTerms(String queryText) {
         boolean hasKorean = queryText.chars().anyMatch(c -> c >= 0xAC00 && c <= 0xD7A3);
-        int minLength = hasKorean ? 2 : 4;
+        int minLength = hasKorean ? 1 : 4;
 
         return Arrays.stream(queryText.toLowerCase().split("\\s+"))
                 .filter(k -> k.length() >= minLength)

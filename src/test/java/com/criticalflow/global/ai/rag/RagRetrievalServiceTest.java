@@ -153,16 +153,16 @@ class RagRetrievalServiceTest {
         }
 
         @Test
-        @DisplayName("1자 한국어는 키워드 추출에서 제외돼 스파스 필터를 통과하지 못한다")
-        void excludes1CharKorean() {
+        @DisplayName("1자 한국어 CS 용어(큐)도 키워드로 인정되어 스파스 검색을 통과한다")
+        void includes1CharKoreanCsTerm() {
             Document doc = doc("1", "큐는 FIFO 자료구조다", "큐");
 
             stubSearch(List.of(), List.of(doc));
 
-            // "큐"(1자)는 minLength=2 조건에서 제외 → 키워드 없음 → 빈 리스트 반환
+            // "큐"(1자)도 한국어 minLength=1 조건으로 포함됨
             RagContext result = service.retrieve("큐", USER_ID, EXCLUDE_NOTE_ID);
 
-            assertThat(result.isEmpty()).isTrue();
+            assertThat(result.getChunks()).anyMatch(c -> c.getTitle().equals("큐"));
         }
     }
 
