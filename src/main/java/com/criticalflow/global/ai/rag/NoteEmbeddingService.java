@@ -15,6 +15,7 @@ public class NoteEmbeddingService {
 
     private final VectorStore vectorStore;
     private final NotePreprocessor notePreprocessor;
+    private final NoteMetadataExtractor metadataExtractor;
 
     /**
      * 노트를 Chroma에 임베딩한다.
@@ -26,6 +27,8 @@ public class NoteEmbeddingService {
         vectorStore.delete(List.of(documentId));
 
         String processedContent = notePreprocessor.preprocessForEmbedding(note.getContent());
+        String languages = String.join(",", metadataExtractor.extractLanguages(note.getContent()));
+        String headers = String.join(",", metadataExtractor.extractHeaders(note.getContent()));
 
         Document document = new Document(
                 documentId,
@@ -35,7 +38,9 @@ public class NoteEmbeddingService {
                         "session_id", note.getSessionId().toString(),
                         "user_id",    note.getUserId().toString(),
                         "title",      note.getTitle(),
-                        "created_at", note.getCreatedAt().toString()
+                        "created_at", note.getCreatedAt().toString(),
+                        "languages",  languages,
+                        "headers",    headers
                 )
         );
 
