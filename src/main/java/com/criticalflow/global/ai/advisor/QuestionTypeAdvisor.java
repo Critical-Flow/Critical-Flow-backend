@@ -5,31 +5,46 @@ import com.criticalflow.domain.note.entity.StudyNote;
 import com.criticalflow.global.ai.rag.RagContext;
 import com.criticalflow.global.ai.router.QuestionTypeRouter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.ai.chat.client.advisor.api.AdvisedRequest;
-import org.springframework.ai.chat.client.advisor.api.AdvisedResponse;
-import org.springframework.ai.chat.client.advisor.api.CallAroundAdvisor;
-import org.springframework.ai.chat.client.advisor.api.CallAroundAdvisorChain;
+import org.springframework.ai.chat.client.ChatClientRequest;
+import org.springframework.ai.chat.client.ChatClientResponse;
+import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
+import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class QuestionTypeAdvisor implements CallAroundAdvisor {
+public class QuestionTypeAdvisor implements CallAdvisor {
 
     private final QuestionTypeRouter router;
     private final QuestionTypePromptProvider promptProvider;
 
     @Override
-    public AdvisedResponse aroundCall(AdvisedRequest req, CallAroundAdvisorChain chain) {
-        StudyNote note = (StudyNote) req.adviseContext().get("note");
-        RagContext ragContext = (RagContext) req.adviseContext().get("ragContext");
+    public ChatClientResponse adviseCall(ChatClientRequest req, CallAdvisorChain chain) {
+        StudyNote note = (StudyNote) req.context().get("note");
+        RagContext ragContext = (RagContext) req.context().get("ragContext");
 
         QuestionType type = router.route(note, ragContext);
 
-        AdvisedRequest modified = req.mutate()
-                .systemText(promptProvider.inject(req.systemText(), type))
-                .build();
+        Prompt originalPrompt = req.prompt();
+        List<Message> modifiedMessages = originalPrompt.getInstructions().stream()
+                .map(msg -> {
+                    if (msg instanceof SystemMessage) {
+                        return (Message) new SystemMessage(
+                                promptProvider.inject(msg.getText(), type));
+                    }
+                    return msg;
+                })
+                .toList();
 
-        return chain.nextAroundCall(modified);
+        Prompt newPrompt = new Prompt(modifiedMessages, originalPrompt.getOptions());
+        ChatClientRequest modifiedReq = req.mutate().prompt(newPrompt).build();
+
+        return chain.nextCall(modifiedReq);
     }
 
     @Override
