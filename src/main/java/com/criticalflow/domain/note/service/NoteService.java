@@ -5,6 +5,7 @@ import com.criticalflow.domain.note.dto.NoteResponse;
 import com.criticalflow.domain.note.dto.NoteUpdateRequest;
 import com.criticalflow.domain.note.entity.StudyNote;
 import com.criticalflow.domain.note.repository.StudyNoteRepository;
+import com.criticalflow.global.ai.rag.NoteEmbeddingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ import java.util.List;
 public class NoteService {
 
     private final StudyNoteRepository noteRepository;
+    private final NoteEmbeddingService noteEmbeddingService;
 
     @Transactional
     public NoteResponse saveNote(Long userId, NoteCreateRequest request) {
@@ -31,7 +33,9 @@ public class NoteService {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        return NoteResponse.from(noteRepository.save(note));
+        StudyNote saved = noteRepository.save(note);
+        noteEmbeddingService.embed(saved);
+        return NoteResponse.from(saved);
     }
 
     @Transactional
@@ -40,6 +44,7 @@ public class NoteService {
                 .orElseThrow(() -> new IllegalArgumentException("Note not found: " + noteId));
 
         note.update(request.title(), request.content(), request.categoryId());
+        noteEmbeddingService.embed(note);
         return NoteResponse.from(note);
     }
 
@@ -49,6 +54,7 @@ public class NoteService {
                 .orElseThrow(() -> new IllegalArgumentException("Note not found: " + noteId));
 
         noteRepository.delete(note);
+        noteEmbeddingService.delete(note.getNoteId());
     }
 
     @Transactional(readOnly = true)
