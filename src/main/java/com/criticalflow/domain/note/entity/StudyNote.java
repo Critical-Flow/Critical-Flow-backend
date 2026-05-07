@@ -44,8 +44,12 @@ public class StudyNote {
     private LocalDateTime updatedAt;
 
     public void update(String title, String content, Long categoryId) {
-        this.title = title;
-        this.content = content;
+        if (title != null) {
+            this.title = title;
+        }
+        if (content != null) {
+            this.content = content;
+        }
         this.categoryId = categoryId;
         this.updatedAt = LocalDateTime.now();
     }
