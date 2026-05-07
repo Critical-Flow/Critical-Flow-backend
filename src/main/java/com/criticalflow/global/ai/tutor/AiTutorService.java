@@ -75,7 +75,7 @@ public class AiTutorService {
 
         persistMessage(conversationId, MessageRole.USER, userMessage, history.size() + 1);
 
-        RagContext ragContext = ragRetrievalService.retrieve(note.getContent(), note.getUserId());
+        RagContext ragContext = ragRetrievalService.retrieve(note.getContent(), note.getUserId(), note.getNoteId());
         String focusEvents = focusEventFormatter.format(note.getSessionId());
 
         String resolvedPrompt = resolvePrompt(
