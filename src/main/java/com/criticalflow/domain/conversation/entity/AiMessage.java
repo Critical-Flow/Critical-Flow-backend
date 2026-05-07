@@ -1,4 +1,4 @@
-package com.criticalflow.domain.ai.entity;
+package com.criticalflow.domain.conversation.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
