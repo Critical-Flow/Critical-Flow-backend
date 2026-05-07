@@ -1,16 +1,16 @@
 package com.criticalflow.domain.note.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "study_note")
 @Getter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class StudyNote {
 
     @Id
@@ -42,4 +42,11 @@ public class StudyNote {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    public void update(String title, String content, Long categoryId) {
+        this.title = title;
+        this.content = content;
+        this.categoryId = categoryId;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
