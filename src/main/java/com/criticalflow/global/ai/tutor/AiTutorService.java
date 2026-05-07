@@ -7,8 +7,10 @@ import com.criticalflow.domain.ai.repository.AiConversationRepository;
 import com.criticalflow.domain.ai.repository.AiMessageRepository;
 import com.criticalflow.domain.note.entity.StudyNote;
 import com.criticalflow.domain.note.repository.StudyNoteRepository;
+import com.criticalflow.domain.ai.entity.QuestionType;
 import com.criticalflow.global.ai.advisor.QuestionTypeAdvisor;
 import com.criticalflow.global.ai.rag.FocusEventFormatter;
+import com.criticalflow.global.ai.router.QuestionTypeRouter;
 import com.criticalflow.global.ai.rag.RagContext;
 import com.criticalflow.global.ai.rag.RagRetrievalService;
 import jakarta.annotation.PostConstruct;
@@ -40,6 +42,7 @@ public class AiTutorService {
 
     private final ChatClient.Builder chatClientBuilder;
     private final QuestionTypeAdvisor questionTypeAdvisor;
+    private final QuestionTypeRouter questionTypeRouter;
     private final RagRetrievalService ragRetrievalService;
     private final FocusEventFormatter focusEventFormatter;
     private final AiConversationRepository conversationRepository;
@@ -72,6 +75,10 @@ public class AiTutorService {
         String focusEvents = focusEventFormatter.format(note.getSessionId());
         boolean hasCodeBlock = note.getContent().contains("```");
 
+        // 라우팅 → DB 저장 → Advisor에 전달 (이중 라우팅 방지)
+        QuestionType questionType = questionTypeRouter.route(note, ragContext);
+        conversation.updateQuestionType(questionType);
+
         String resolvedPrompt = resolvePrompt(note.getContent(), ragContext.format(), focusEvents,
                 conversation.getType().name(), 0, hasCodeBlock);
 
@@ -80,7 +87,8 @@ public class AiTutorService {
                 .advisors(spec -> spec
                         .param("note", note)
                         .param("ragContext", ragContext)
-                        .param("questionCount", 0))
+                        .param("questionCount", 0)
+                        .param("preSelectedType", questionType))
                 .call()
                 .content();
 
