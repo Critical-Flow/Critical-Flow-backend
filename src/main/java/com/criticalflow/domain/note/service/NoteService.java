@@ -6,8 +6,10 @@ import com.criticalflow.domain.note.dto.NoteUpdateRequest;
 import com.criticalflow.domain.note.entity.StudyNote;
 import com.criticalflow.domain.note.repository.StudyNoteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,8 +39,7 @@ public class NoteService {
 
     @Transactional
     public NoteResponse updateNote(Long userId, Long noteId, NoteUpdateRequest request) {
-        StudyNote note = noteRepository.findByNoteIdAndUserId(noteId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("Note not found: " + noteId));
+        StudyNote note = getOwnedNote(userId, noteId);
 
         note.update(request.title(), request.content(), request.categoryId());
         return NoteResponse.from(note);
@@ -46,8 +47,7 @@ public class NoteService {
 
     @Transactional
     public void deleteNote(Long userId, Long noteId) {
-        StudyNote note = noteRepository.findByNoteIdAndUserId(noteId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("Note not found: " + noteId));
+        StudyNote note = getOwnedNote(userId, noteId);
 
         noteRepository.delete(note);
     }
@@ -62,9 +62,19 @@ public class NoteService {
 
     @Transactional(readOnly = true)
     public NoteResponse getNote(Long userId, Long noteId) {
-        StudyNote note = noteRepository.findByNoteIdAndUserId(noteId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("Note not found: " + noteId));
+        StudyNote note = getOwnedNote(userId, noteId);
 
         return NoteResponse.from(note);
+    }
+
+    private StudyNote getOwnedNote(Long userId, Long noteId) {
+        StudyNote note = noteRepository.findById(noteId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found: " + noteId));
+
+        if (!note.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No permission for note: " + noteId);
+        }
+
+        return note;
     }
 }
