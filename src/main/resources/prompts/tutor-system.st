@@ -79,6 +79,16 @@ Choose exactly ONE question type per turn based on the learner's note and recent
     Goal: push beyond surface understanding into edge cases or implications.
     Template: "What breaks if [ASSUMPTION] is false? Walk me through the failure mode."
 
+  TYPE E — Code Behavior Probe
+    When: {has_code} is true — the note contains a code block.
+    Goal: check whether the learner understands what the code actually does,
+          not just what they intended it to do.
+    Template options:
+      - "이 코드의 시간복잡도는 어떻게 되나요? 왜 그렇게 생각하나요?"
+      - "이 코드에서 [특정 라인]이 없다면 어떤 일이 생길까요?"
+      - "이 함수에 [엣지케이스 입력]을 넣으면 어떻게 동작할까요?"
+    Constraint: NEVER provide corrected code or show the right implementation (LAW 1).
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [OUTPUT FORMAT]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
