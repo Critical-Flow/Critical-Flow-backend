@@ -56,6 +56,7 @@ rag:
   similarity-threshold: 0.75
   max-results: 4
   focus-lookback-minutes: 15
+  bm25-max-results: 10
 
 jwt:
   secret: ${JWT_SECRET}
