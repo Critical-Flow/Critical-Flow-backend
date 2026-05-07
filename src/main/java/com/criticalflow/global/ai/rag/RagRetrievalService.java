@@ -7,8 +7,8 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,26 +22,24 @@ public class RagRetrievalService {
     @Value("${rag.max-results:4}")
     private int maxResults;
 
+    @Value("${rag.bm25-max-results:10}")
+    private int bm25MaxResults;
+
     /**
-     * 현재 노트 내용을 쿼리로 Chroma를 검색한다.
+     * Dense + Sparse 하이브리드 검색 후 RRF로 병합한다.
      *
-     * 1차 필터 — Chroma의 similarity threshold (0.75)
-     * 2차 필터 — 키워드 오버랩 기반 topic mismatch 제거 (LAW 4: RAG 노이즈 차단)
-     * excludeNoteId — 현재 노트 자신이 similarity 1.0으로 검색되는 문제 방지
+     * Dense  — 의미 기반 벡터 유사도 검색 (threshold 0.75)
+     * Sparse — 키워드 포함 여부 기반 검색 (threshold 0.0 + 키워드 필터)
+     * RRF    — 두 순위 리스트를 1/(k+rank) 점수로 병합
      */
     public RagContext retrieve(String queryText, Long userId, Long excludeNoteId) {
-        SearchRequest request = SearchRequest.builder()
-                .query(queryText)
-                .topK(maxResults + 2)
-                .similarityThreshold(similarityThreshold)
-                .filterExpression("user_id == '" + userId + "' && note_id != '" + excludeNoteId + "'")
-                .build();
+        List<Document> denseResults  = denseSearch(queryText, userId, excludeNoteId);
+        List<Document> sparseResults = sparseSearch(queryText, userId, excludeNoteId);
 
-        List<Document> candidates = vectorStore.similaritySearch(request);
+        List<Document> merged = mergeWithRRF(denseResults, sparseResults, maxResults);
 
-        List<RagContext.RetrievedChunk> chunks = candidates.stream()
+        List<RagContext.RetrievedChunk> chunks = merged.stream()
                 .filter(doc -> isTopicRelevant(doc, queryText))
-                .limit(maxResults)
                 .map(doc -> RagContext.RetrievedChunk.builder()
                         .title(getMeta(doc, "title"))
                         .sessionId(getMeta(doc, "session_id"))
@@ -53,11 +51,77 @@ public class RagRetrievalService {
         return RagContext.builder().chunks(chunks).build();
     }
 
-    /**
-     * 2차 topic mismatch 필터.
-     * Chroma threshold를 간신히 넘긴 노이즈 청크를 제거한다.
-     * 한국어 포함 시 최소 길이 1자, 영어는 3자 기준 — 의미 있는 키워드의 최소 20%가 겹쳐야 통과.
-     */
+    // ── Dense 검색 ────────────────────────────────────────────────────────────
+
+    private List<Document> denseSearch(String queryText, Long userId, Long excludeNoteId) {
+        return vectorStore.similaritySearch(SearchRequest.builder()
+                .query(queryText)
+                .topK(maxResults + 2)
+                .similarityThreshold(similarityThreshold)
+                .filterExpression("user_id == '" + userId + "' && note_id != '" + excludeNoteId + "'")
+                .build());
+    }
+
+    // ── Sparse 검색 (키워드 기반) ─────────────────────────────────────────────
+
+    private List<Document> sparseSearch(String queryText, Long userId, Long excludeNoteId) {
+        List<String> keywords = extractKeyTerms(queryText);
+        if (keywords.isEmpty()) return List.of();
+
+        // threshold 0.0으로 넓게 후보를 가져온 뒤 키워드 포함 여부로 필터
+        List<Document> candidates = vectorStore.similaritySearch(SearchRequest.builder()
+                .query(queryText)
+                .topK(bm25MaxResults)
+                .similarityThreshold(0.0)
+                .filterExpression("user_id == '" + userId + "' && note_id != '" + excludeNoteId + "'")
+                .build());
+
+        return candidates.stream()
+                .filter(doc -> {
+                    String content = doc.getText().toLowerCase();
+                    return keywords.stream().anyMatch(content::contains);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<String> extractKeyTerms(String queryText) {
+        boolean hasKorean = queryText.chars().anyMatch(c -> c >= 0xAC00 && c <= 0xD7A3);
+        int minLength = hasKorean ? 2 : 4;
+
+        return Arrays.stream(queryText.toLowerCase().split("\\s+"))
+                .filter(k -> k.length() >= minLength)
+                .distinct()
+                .toList();
+    }
+
+    // ── RRF 병합 ─────────────────────────────────────────────────────────────
+
+    private List<Document> mergeWithRRF(List<Document> dense, List<Document> sparse, int limit) {
+        Map<String, Double> scores = new HashMap<>();
+        Map<String, Document> docMap = new HashMap<>();
+        int k = 60; // RRF 표준 상수
+
+        for (int i = 0; i < dense.size(); i++) {
+            String id = dense.get(i).getId();
+            scores.merge(id, 1.0 / (k + i + 1), Double::sum);
+            docMap.put(id, dense.get(i));
+        }
+        for (int i = 0; i < sparse.size(); i++) {
+            String id = sparse.get(i).getId();
+            scores.merge(id, 1.0 / (k + i + 1), Double::sum);
+            docMap.putIfAbsent(id, sparse.get(i));
+        }
+
+        return scores.entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .limit(limit)
+                .map(e -> docMap.get(e.getKey()))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    // ── 2차 필터 ──────────────────────────────────────────────────────────────
+
     private boolean isTopicRelevant(Document doc, String queryText) {
         String[] keywords = queryText.toLowerCase().split("\\s+");
         String content = doc.getText().toLowerCase();
@@ -82,7 +146,6 @@ public class RagRetrievalService {
     }
 
     private double extractScore(Document doc) {
-        // Spring AI는 score를 Document 메타데이터의 "distance" 키에 저장한다
         Object raw = doc.getMetadata().get("distance");
         if (raw instanceof Number n) return n.doubleValue();
         return 0.0;
