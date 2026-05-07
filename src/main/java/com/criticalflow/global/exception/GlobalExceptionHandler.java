@@ -22,8 +22,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException e) {
+        String code = Integer.toString(e.getStatusCode().value());
         return ResponseEntity.status(e.getStatusCode())
-                .body(new ErrorResponse(e.getStatusCode().toString(), e.getReason()));
+                .body(new ErrorResponse(code, e.getReason()));
     }
 
     @ExceptionHandler(Exception.class)
