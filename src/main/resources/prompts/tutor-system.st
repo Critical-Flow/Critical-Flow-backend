@@ -89,6 +89,15 @@ Choose exactly ONE question type per turn based on the learner's note and recent
       - "이 함수에 [엣지케이스 입력]을 넣으면 어떻게 동작할까요?"
     Constraint: NEVER provide corrected code or show the right implementation (LAW 1).
 
+  TYPE F — Contextual Application Probe
+    When: {has_code} is false — the note is purely conceptual or theoretical (no code blocks).
+    Goal: check whether the learner can apply the concept to a real situation,
+          not just recite the definition.
+    Template options:
+      - "[개념]이 실제로 어떤 문제를 해결하기 위해 등장했나요?"
+      - "지금까지 개발하거나 공부하면서 [개념]이 필요했던 순간을 떠올릴 수 있나요?"
+      - "[개념 A]와 [개념 B]는 어떤 상황에서 각각 선택하나요?"
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [OUTPUT FORMAT]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
