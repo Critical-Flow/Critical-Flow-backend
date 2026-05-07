@@ -58,6 +58,39 @@ public class AiTutorService {
     }
 
     @Transactional
+    public TutorResponse generateFirstQuestion(Long conversationId) {
+        AiConversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new IllegalArgumentException("Conversation not found: " + conversationId));
+
+        StudyNote note = noteRepository.findById(conversation.getNoteId())
+                .orElseThrow(() -> new IllegalStateException("Note not found for conversation: " + conversationId));
+
+        RagContext ragContext = ragRetrievalService.retrieve(note.getContent(), note.getUserId());
+        String focusEvents = focusEventFormatter.format(note.getSessionId());
+
+        String resolvedPrompt = resolvePrompt(
+                note.getContent(),
+                ragContext.format(),
+                focusEvents,
+                conversation.getType().name(),
+                0
+        );
+
+        List<Message> messages = new ArrayList<>();
+        messages.add(new SystemMessage(resolvedPrompt));
+        ChatResponse chatResponse = chatModel.call(new Prompt(messages));
+        String aiContent = chatResponse.getResult().getOutput().getText();
+
+        persistMessage(conversationId, MessageRole.AI, aiContent, 1);
+
+        return TutorResponse.builder()
+                .content(aiContent)
+                .summaryMode(false)
+                .questionCount(0)
+                .build();
+    }
+
+    @Transactional
     public TutorResponse respond(Long conversationId, String userMessage) {
         AiConversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new IllegalArgumentException("Conversation not found: " + conversationId));
