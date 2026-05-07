@@ -7,18 +7,16 @@ import com.criticalflow.domain.ai.repository.AiConversationRepository;
 import com.criticalflow.domain.ai.repository.AiMessageRepository;
 import com.criticalflow.domain.note.entity.StudyNote;
 import com.criticalflow.domain.note.repository.StudyNoteRepository;
+import com.criticalflow.global.ai.advisor.QuestionTypeAdvisor;
 import com.criticalflow.global.ai.rag.FocusEventFormatter;
 import com.criticalflow.global.ai.rag.RagContext;
 import com.criticalflow.global.ai.rag.RagRetrievalService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
-import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -40,7 +38,8 @@ public class AiTutorService {
             "아", "어", "음", "몰라", "모르겠어", "모름", ".", "..", "...", "idk", "?"
     );
 
-    private final ChatModel chatModel;
+    private final ChatClient.Builder chatClientBuilder;
+    private final QuestionTypeAdvisor questionTypeAdvisor;
     private final RagRetrievalService ragRetrievalService;
     private final FocusEventFormatter focusEventFormatter;
     private final AiConversationRepository conversationRepository;
@@ -51,10 +50,46 @@ public class AiTutorService {
     private Resource systemPromptResource;
 
     private String systemPromptTemplate;
+    private ChatClient chatClient;
 
     @PostConstruct
-    private void loadPromptTemplate() throws IOException {
+    private void init() throws IOException {
         systemPromptTemplate = systemPromptResource.getContentAsString(StandardCharsets.UTF_8);
+        chatClient = chatClientBuilder
+                .defaultAdvisors(questionTypeAdvisor)
+                .build();
+    }
+
+    @Transactional
+    public TutorResponse generateFirstQuestion(Long conversationId) {
+        AiConversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new IllegalArgumentException("Conversation not found: " + conversationId));
+
+        StudyNote note = noteRepository.findById(conversation.getNoteId())
+                .orElseThrow(() -> new IllegalStateException("Note not found for conversation: " + conversationId));
+
+        RagContext ragContext = ragRetrievalService.retrieve(note.getContent(), note.getUserId());
+        String focusEvents = focusEventFormatter.format(note.getSessionId());
+
+        String resolvedPrompt = resolvePrompt(note.getContent(), ragContext.format(), focusEvents,
+                conversation.getType().name(), 0);
+
+        String aiContent = chatClient.prompt()
+                .system(resolvedPrompt)
+                .advisors(spec -> spec
+                        .param("note", note)
+                        .param("ragContext", ragContext)
+                        .param("questionCount", 0))
+                .call()
+                .content();
+
+        persistMessage(conversationId, MessageRole.AI, aiContent, 1);
+
+        return TutorResponse.builder()
+                .content(aiContent)
+                .summaryMode(false)
+                .questionCount(0)
+                .build();
     }
 
     @Transactional
@@ -101,7 +136,6 @@ public class AiTutorService {
         List<AiMessage> history = messageRepository.findByConversationIdOrderBySequenceAsc(conversationId);
         long questionCount = countAiMessages(history);
 
-        // LAW 5: 무의미한 입력은 LLM 호출 없이 재유도 응답 반환
         if (isMeaninglessInput(userMessage)) {
             return reanchor(conversationId, userMessage, history, questionCount);
         }
@@ -121,9 +155,16 @@ public class AiTutorService {
                 hasCodeBlock
         );
 
-        List<Message> messages = buildMessages(resolvedPrompt, history, userMessage);
-        ChatResponse chatResponse = chatModel.call(new Prompt(messages));
-        String aiContent = chatResponse.getResult().getOutput().getText();
+        String aiContent = chatClient.prompt()
+                .system(resolvedPrompt)
+                .messages(historyMessages)
+                .user(userMessage)
+                .advisors(spec -> spec
+                        .param("note", note)
+                        .param("ragContext", ragContext)
+                        .param("questionCount", questionCount))
+                .call()
+                .content();
 
         persistMessage(conversationId, MessageRole.AI, aiContent, history.size() + 2);
 
@@ -143,9 +184,6 @@ public class AiTutorService {
         return FILLER_WORDS.contains(trimmed.toLowerCase());
     }
 
-    /**
-     * LAW 5 발동: LLM 없이 마지막 AI 질문을 단순화해 재제시한다.
-     */
     private TutorResponse reanchor(Long conversationId, String userMessage,
                                    List<AiMessage> history, long questionCount) {
         String lastAiQuestion = history.stream()
@@ -177,15 +215,13 @@ public class AiTutorService {
                 .replace("{has_code}", String.valueOf(hasCodeBlock));
     }
 
-    private List<Message> buildMessages(String systemPrompt, List<AiMessage> history, String userMessage) {
+    private List<Message> buildHistoryMessages(List<AiMessage> history) {
         List<Message> messages = new ArrayList<>();
-        messages.add(new SystemMessage(systemPrompt));
         for (AiMessage msg : history) {
             messages.add(msg.getRole() == MessageRole.USER
                     ? new UserMessage(msg.getContent())
                     : new AssistantMessage(msg.getContent()));
         }
-        messages.add(new UserMessage(userMessage));
         return messages;
     }
 
