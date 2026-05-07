@@ -15,14 +15,16 @@ public class ConversationResponse {
     private Long userId;
     private String type;
     private LocalDateTime createdAt;
+    private String firstQuestion;
 
-    public static ConversationResponse from(AiConversation conversation) {
+    public static ConversationResponse from(AiConversation conversation, String firstQuestion) {
         return ConversationResponse.builder()
                 .conversationId(conversation.getConversationId())
                 .noteId(conversation.getNoteId())
                 .userId(conversation.getUserId())
                 .type(conversation.getType().name())
                 .createdAt(conversation.getCreatedAt())
+                .firstQuestion(firstQuestion)
                 .build();
     }
 }

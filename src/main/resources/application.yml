@@ -60,3 +60,6 @@ rag:
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
+
+frontend:
+  callback-url: ${FRONTEND_CALLBACK_URL:http://localhost:5173/oauth/callback}

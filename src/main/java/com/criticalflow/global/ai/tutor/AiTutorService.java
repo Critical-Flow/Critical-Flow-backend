@@ -93,6 +93,39 @@ public class AiTutorService {
     }
 
     @Transactional
+    public TutorResponse generateFirstQuestion(Long conversationId) {
+        AiConversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new IllegalArgumentException("Conversation not found: " + conversationId));
+
+        StudyNote note = noteRepository.findById(conversation.getNoteId())
+                .orElseThrow(() -> new IllegalStateException("Note not found for conversation: " + conversationId));
+
+        RagContext ragContext = ragRetrievalService.retrieve(note.getContent(), note.getUserId());
+        String focusEvents = focusEventFormatter.format(note.getSessionId());
+
+        String resolvedPrompt = resolvePrompt(
+                note.getContent(),
+                ragContext.format(),
+                focusEvents,
+                conversation.getType().name(),
+                0
+        );
+
+        List<Message> messages = new ArrayList<>();
+        messages.add(new SystemMessage(resolvedPrompt));
+        ChatResponse chatResponse = chatModel.call(new Prompt(messages));
+        String aiContent = chatResponse.getResult().getOutput().getText();
+
+        persistMessage(conversationId, MessageRole.AI, aiContent, 1);
+
+        return TutorResponse.builder()
+                .content(aiContent)
+                .summaryMode(false)
+                .questionCount(0)
+                .build();
+    }
+
+    @Transactional
     public TutorResponse respond(Long conversationId, String userMessage) {
         AiConversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new IllegalArgumentException("Conversation not found: " + conversationId));
@@ -109,13 +142,18 @@ public class AiTutorService {
 
         persistMessage(conversationId, MessageRole.USER, userMessage, history.size() + 1);
 
-        RagContext ragContext = ragRetrievalService.retrieve(note.getContent(), note.getUserId());
+        RagContext ragContext = ragRetrievalService.retrieve(note.getContent(), note.getUserId(), note.getNoteId());
         String focusEvents = focusEventFormatter.format(note.getSessionId());
+        boolean hasCodeBlock = note.getContent().contains("```");
 
-        String resolvedPrompt = resolvePrompt(note.getContent(), ragContext.format(), focusEvents,
-                conversation.getType().name(), questionCount);
-
-        List<Message> historyMessages = buildHistoryMessages(history);
+        String resolvedPrompt = resolvePrompt(
+                note.getContent(),
+                ragContext.format(),
+                focusEvents,
+                conversation.getType().name(),
+                questionCount,
+                hasCodeBlock
+        );
 
         String aiContent = chatClient.prompt()
                 .system(resolvedPrompt)
@@ -167,13 +205,14 @@ public class AiTutorService {
     }
 
     private String resolvePrompt(String currentNote, String ragContext, String focusEvents,
-                                  String conversationType, long questionCount) {
+                                  String conversationType, long questionCount, boolean hasCodeBlock) {
         return systemPromptTemplate
                 .replace("{current_note}", currentNote)
                 .replace("{rag_context}", ragContext)
                 .replace("{focus_events}", focusEvents)
                 .replace("{conversation_type}", conversationType)
-                .replace("{question_count}", questionCount + " / " + MAX_QUESTIONS);
+                .replace("{question_count}", questionCount + " / " + MAX_QUESTIONS)
+                .replace("{has_code}", String.valueOf(hasCodeBlock));
     }
 
     private List<Message> buildHistoryMessages(List<AiMessage> history) {
