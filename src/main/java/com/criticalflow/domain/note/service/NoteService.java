@@ -20,6 +20,7 @@ public class NoteService {
 
     @Transactional
     public NoteResponse saveNote(Long userId, NoteCreateRequest request) {
+        LocalDateTime now = LocalDateTime.now();
         StudyNote note = StudyNote.builder()
                 .userId(userId)
                 .sessionId(request.sessionId())
@@ -27,8 +28,8 @@ public class NoteService {
                 .title(request.title())
                 .content(request.content())
                 .isSaved(true)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .createdAt(now)
+                .updatedAt(now)
                 .build();
 
         return NoteResponse.from(noteRepository.save(note));
