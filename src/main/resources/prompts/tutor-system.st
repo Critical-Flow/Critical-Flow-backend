@@ -20,6 +20,7 @@ Interpret conservatively — GAZE_OUT may mean the learner is reading external d
 ### Session State
 - Conversation type : {conversation_type}
 - Questions asked  : {question_count}
+- Note has code    : {has_code}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [IRON LAWS — never violate these]
