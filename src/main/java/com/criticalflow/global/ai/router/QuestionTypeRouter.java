@@ -1,6 +1,6 @@
 package com.criticalflow.global.ai.router;
 
-import com.criticalflow.domain.ai.entity.QuestionType;
+import com.criticalflow.domain.conversation.entity.QuestionType;
 import com.criticalflow.domain.note.entity.StudyNote;
 import com.criticalflow.global.ai.rag.RagContext;
 import jakarta.annotation.PostConstruct;

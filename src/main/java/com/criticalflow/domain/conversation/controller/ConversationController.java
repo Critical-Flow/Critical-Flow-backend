@@ -1,6 +1,6 @@
 package com.criticalflow.domain.conversation.controller;
 
-import com.criticalflow.domain.ai.entity.AiConversation;
+import com.criticalflow.domain.conversation.entity.AiConversation;
 import com.criticalflow.domain.conversation.dto.ConversationResponse;
 import com.criticalflow.domain.conversation.dto.MessageResponse;
 import com.criticalflow.domain.conversation.dto.SendMessageRequest;

@@ -1,6 +1,6 @@
 package com.criticalflow.global.ai.advisor;
 
-import com.criticalflow.domain.ai.entity.QuestionType;
+import com.criticalflow.domain.conversation.entity.QuestionType;
 import org.springframework.stereotype.Component;
 
 @Component
