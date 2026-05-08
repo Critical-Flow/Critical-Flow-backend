@@ -1,6 +1,6 @@
-package com.criticalflow.conversation.dto;
+package com.criticalflow.domain.conversation.dto;
 
-import com.criticalflow.domain.ai.entity.AiMessage;
+import com.criticalflow.domain.conversation.entity.AiMessage;
 import lombok.Builder;
 import lombok.Getter;
 

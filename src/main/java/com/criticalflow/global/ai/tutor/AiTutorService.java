@@ -1,13 +1,13 @@
 package com.criticalflow.global.ai.tutor;
 
-import com.criticalflow.domain.ai.entity.AiConversation;
-import com.criticalflow.domain.ai.entity.AiMessage;
-import com.criticalflow.domain.ai.entity.AiMessage.MessageRole;
-import com.criticalflow.domain.ai.repository.AiConversationRepository;
-import com.criticalflow.domain.ai.repository.AiMessageRepository;
+import com.criticalflow.domain.conversation.entity.AiConversation;
+import com.criticalflow.domain.conversation.entity.AiMessage;
+import com.criticalflow.domain.conversation.entity.AiMessage.MessageRole;
+import com.criticalflow.domain.conversation.repository.AiConversationRepository;
+import com.criticalflow.domain.conversation.repository.AiMessageRepository;
 import com.criticalflow.domain.note.entity.StudyNote;
 import com.criticalflow.domain.note.repository.StudyNoteRepository;
-import com.criticalflow.domain.ai.entity.QuestionType;
+import com.criticalflow.domain.conversation.entity.QuestionType;
 import com.criticalflow.global.ai.advisor.QuestionTypeAdvisor;
 import com.criticalflow.global.ai.rag.FocusEventFormatter;
 import com.criticalflow.global.ai.router.QuestionTypeRouter;

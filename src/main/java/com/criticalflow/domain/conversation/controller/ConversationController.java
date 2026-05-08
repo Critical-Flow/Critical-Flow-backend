@@ -1,11 +1,11 @@
-package com.criticalflow.conversation.controller;
+package com.criticalflow.domain.conversation.controller;
 
-import com.criticalflow.conversation.dto.ConversationResponse;
-import com.criticalflow.conversation.dto.MessageResponse;
-import com.criticalflow.conversation.dto.SendMessageRequest;
-import com.criticalflow.conversation.dto.StartConversationRequest;
-import com.criticalflow.conversation.service.ConversationService;
-import com.criticalflow.domain.ai.entity.AiConversation;
+import com.criticalflow.domain.conversation.entity.AiConversation;
+import com.criticalflow.domain.conversation.dto.ConversationResponse;
+import com.criticalflow.domain.conversation.dto.MessageResponse;
+import com.criticalflow.domain.conversation.dto.SendMessageRequest;
+import com.criticalflow.domain.conversation.dto.StartConversationRequest;
+import com.criticalflow.domain.conversation.service.ConversationService;
 import com.criticalflow.global.ai.tutor.AiTutorService;
 import com.criticalflow.global.ai.tutor.TutorResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +23,6 @@ public class ConversationController {
     private final ConversationService conversationService;
     private final AiTutorService aiTutorService;
 
-    /**
-     * 새 대화 세션을 시작한다.
-     * 대화 생성 직후 AI가 노트를 분석해 첫 질문을 자동 생성한다.
-     */
     @PostMapping
     public ResponseEntity<ConversationResponse> start(@RequestBody StartConversationRequest request) {
         AiConversation conversation = conversationService.start(
@@ -37,10 +33,6 @@ public class ConversationController {
                 .body(ConversationResponse.from(conversation, firstQuestion.getContent()));
     }
 
-    /**
-     * 학습자 메시지를 전송하고 AI 튜터의 응답을 받는다.
-     * AiTutorService가 RAG + FocusEvent + System Prompt를 조합해 응답을 생성한다.
-     */
     @PostMapping("/{conversationId}/messages")
     public ResponseEntity<TutorResponse> sendMessage(
             @PathVariable Long conversationId,
@@ -49,9 +41,6 @@ public class ConversationController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 특정 대화의 전체 메시지 히스토리를 시간순으로 반환한다.
-     */
     @GetMapping("/{conversationId}/messages")
     public ResponseEntity<List<MessageResponse>> getMessages(@PathVariable Long conversationId) {
         List<MessageResponse> messages = conversationService.getMessages(conversationId)

@@ -1,10 +1,10 @@
-package com.criticalflow.conversation.service;
+package com.criticalflow.domain.conversation.service;
 
-import com.criticalflow.domain.ai.entity.AiConversation;
-import com.criticalflow.domain.ai.entity.AiMessage;
-import com.criticalflow.domain.ai.entity.QuestionType;
-import com.criticalflow.domain.ai.repository.AiConversationRepository;
-import com.criticalflow.domain.ai.repository.AiMessageRepository;
+import com.criticalflow.domain.conversation.entity.AiConversation;
+import com.criticalflow.domain.conversation.entity.AiMessage;
+import com.criticalflow.domain.conversation.entity.QuestionType;
+import com.criticalflow.domain.conversation.repository.AiConversationRepository;
+import com.criticalflow.domain.conversation.repository.AiMessageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

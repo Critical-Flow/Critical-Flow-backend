@@ -1,4 +1,4 @@
-package com.criticalflow.domain.ai.entity;
+package com.criticalflow.domain.conversation.entity;
 
 public enum QuestionType {
     TYPE_A,  // 개념 정의 확인

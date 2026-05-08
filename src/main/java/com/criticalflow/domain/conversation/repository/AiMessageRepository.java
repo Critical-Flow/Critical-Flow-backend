@@ -1,6 +1,6 @@
-package com.criticalflow.domain.ai.repository;
+package com.criticalflow.domain.conversation.repository;
 
-import com.criticalflow.domain.ai.entity.AiMessage;
+import com.criticalflow.domain.conversation.entity.AiMessage;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
