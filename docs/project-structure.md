@@ -12,25 +12,24 @@ src/main/java/com/criticalflow/
 │
 ├── CriticalFlowApplication.java
 │
-    ├── conversation/
-│   ├── controller/
-│   │   └── ConversationController.java           ✏️ questionType 파라미터 추가
-│   ├── dto/
-│   │   ├── ConversationResponse.java
-│   │   ├── MessageResponse.java
-│   │   ├── SendMessageRequest.java
-│   │   └── StartConversationRequest.java         ✏️ questionType 필드 추가
-│   └── service/
-│       └── ConversationService.java              ✏️ questionType 저장 로직 추가
-│
 ├── domain/
-│   ├── ai/
+│   ├── conversation/                             ✏️ domain/ai + conversation 패키지 통합
+│   │   ├── controller/
+│   │   │   └── ConversationController.java       ✏️ questionType 파라미터 추가
+│   │   ├── dto/
+│   │   │   ├── ConversationResponse.java
+│   │   │   ├── MessageResponse.java
+│   │   │   ├── SendMessageRequest.java
+│   │   │   └── StartConversationRequest.java     ✏️ questionType 필드 추가
 │   │   ├── entity/
 │   │   │   ├── AiConversation.java               ✏️ questionType 필드 추가
-│   │   │   └── AiMessage.java
-│   │   └── repository/
-│   │       ├── AiConversationRepository.java     ✏️ fine-tuning 데이터 추출 쿼리 추가
-│   │       └── AiMessageRepository.java
+│   │   │   ├── AiMessage.java
+│   │   │   └── QuestionType.java                 🆕 TYPE_A ~ TYPE_F enum
+│   │   ├── repository/
+│   │   │   ├── AiConversationRepository.java     ✏️ fine-tuning 데이터 추출 쿼리 추가
+│   │   │   └── AiMessageRepository.java
+│   │   └── service/
+│   │       └── ConversationService.java          ✏️ questionType 저장 로직 추가
 │   ├── focus/
 │   │   ├── entity/
 │   │   │   └── FocusEvent.java
@@ -52,24 +51,23 @@ src/main/java/com/criticalflow/
 │   └── user/
 │       ├── entity/
 │       │   └── User.java
-│       └── repository/
-│           └── UserRepository.java
+│       ├── repository/
+│       │   └── UserRepository.java
+│       └── service/
+│           └── CustomOAuth2UserService.java
 │
 └── global/
     ├── ai/
     │   ├── advisor/
     │   │   ├── QuestionTypeAdvisor.java          🆕 CallAroundAdvisor — TYPE 주입
     │   │   └── QuestionTypePromptProvider.java   🆕 TYPE별 프롬프트 텍스트 관리
-    │   ├── enums/
-    │   │   └── QuestionType.java                 🆕 TYPE_A ~ TYPE_F enum
     │   ├── rag/
     │   │   ├── FocusEventFormatter.java
     │   │   ├── NoteEmbeddingService.java         ✏️ 전처리 + 메타데이터 추출 적용
     │   │   ├── NoteMetadataExtractor.java        🆕 언어/헤더 자동 추출
     │   │   ├── NotePreprocessor.java             🆕 코드 블록 → 식별자 변환
     │   │   ├── RagContext.java                   ✏️ format()에 "[참고용 과거 노트]" 레이블 추가
-    │   │   ├── RagRetrievalService.java          ✏️ excludeNoteId 파라미터 + BM25 병렬 검색 + 한국어 필터
-    │   │   └── SessionSummaryService.java        🆕 세션 요약 생성 + ChromaDB 저장
+    │   │   └── RagRetrievalService.java          ✏️ excludeNoteId 파라미터 + BM25 병렬 검색 + 한국어 필터
     │   ├── router/
     │   │   └── QuestionTypeRouter.java           🆕 규칙 필터 + LLM 분류 (GPT-4o-mini)
     │   └── tutor/
@@ -155,11 +153,29 @@ POST /api/v1/conversations/{id}/messages
 AiTutorService.respond()
     │
     ├── RagRetrievalService.retrieve(noteContent, userId, excludeNoteId)
-    │       ├── Dense 검색 (기존)
-    │       ├── BM25 스파스 검색 (신규)
-    │       └── RRF 병합 → 한국어 키워드 필터 → RagContext
+    │       │
+    │       ├── [1] Dense 검색
+    │       │       VectorStore.similaritySearch(threshold=0.75, topK=6)
+    │       │       filterExpression: user_id == userId && note_id != excludeNoteId
+    │       │
+    │       ├── [2] Sparse 검색 (BM25 방식)
+    │       │       extractKeyTerms() → 한국어 1자↑ / 영어 4자↑ 키워드 추출
+    │       │       VectorStore.similaritySearch(threshold=0.0, topK=10)
+    │       │       keywords.anyMatch(content::contains) → 키워드 1개 이상 포함 문서만 통과
+    │       │
+    │       ├── [3] RRF 병합
+    │       │       score = Σ 1/(60 + rank)  (양쪽 등장 문서는 점수 합산)
+    │       │       → 상위 4개 선별
+    │       │
+    │       ├── [4] 2차 키워드 오버랩 필터 (isTopicRelevant)
+    │       │       한국어 1자↑ / 영어 3자↑ 의미 키워드 중 20% 이상 일치해야 통과
+    │       │       목적: Dense 0.75 통과 노이즈 제거 + Sparse 1개 히트 저품질 문서 제거
+    │       │
+    │       └── RagContext 반환
     │
     ├── FocusEventFormatter.format(sessionId)
+    │       FocusEventRepository 조회 (최근 15분 이내 집중 이탈 이벤트)
+    │       → {focus_events} 문자열 생성
     │
     └── ChatClient 호출 (Advisor 체인)
             │
@@ -168,8 +184,8 @@ AiTutorService.respond()
             │
             ├── QuestionTypeRouter.route(note, ragContext)
             │       ├── [규칙] 코드 블록 있음? → TYPE_E 즉시 반환
-            │       └── [LLM] GPT-4o-mini few-shot 분류 → TYPE 결정
-            │               └── AiConversation.questionType 저장
+            │       └── [LLM] GPT-4o-mini few-shot 분류 → TYPE_A~F 결정
+            │               └── AiConversation.questionType DB 저장
             │
             └── 선택된 TYPE 설명만 시스템 프롬프트에 주입
                     │
