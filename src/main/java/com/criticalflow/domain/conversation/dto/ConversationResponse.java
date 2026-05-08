@@ -1,4 +1,4 @@
-package com.criticalflow.conversation.dto;
+package com.criticalflow.domain.conversation.dto;
 
 import com.criticalflow.domain.ai.entity.AiConversation;
 import lombok.Builder;

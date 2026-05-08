@@ -1,4 +1,4 @@
-package com.criticalflow.conversation.service;
+package com.criticalflow.domain.conversation.service;
 
 import com.criticalflow.domain.ai.entity.AiConversation;
 import com.criticalflow.domain.ai.entity.AiMessage;
