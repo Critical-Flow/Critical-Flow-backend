@@ -1,6 +1,7 @@
 package com.criticalflow.global.ai.rag;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RagRetrievalService {
@@ -33,6 +35,9 @@ public class RagRetrievalService {
      * RRF    — 두 순위 리스트를 1/(k+rank) 점수로 병합
      */
     public RagContext retrieve(String queryText, Long userId, Long excludeNoteId) {
+        // [#60 임시 — 단일 API 호출로 5개 임계값 비교. 측정 완료 후 제거]
+        logThresholdCandidates(queryText, userId, excludeNoteId);
+
         List<Document> denseResults  = denseSearch(queryText, userId, excludeNoteId);
         List<Document> sparseResults = sparseSearch(queryText, userId, excludeNoteId);
 
@@ -149,5 +154,33 @@ public class RagRetrievalService {
         Object raw = doc.getMetadata().get("distance");
         if (raw instanceof Number n) return n.doubleValue();
         return 0.0;
+    }
+
+    // [#60 임시 — similarity-threshold 최적값 검증. 측정 완료 후 제거]
+    private void logThresholdCandidates(String queryText, Long userId, Long excludeNoteId) {
+        double[] thresholds = {0.60, 0.70, 0.75, 0.80, 0.85};
+
+        List<Document> candidates = vectorStore.similaritySearch(SearchRequest.builder()
+                .query(queryText)
+                .topK(10)
+                .similarityThreshold(0.50)
+                .filterExpression("user_id == '" + userId + "' && note_id != '" + excludeNoteId + "'")
+                .build());
+
+        log.info("[#60 THRESHOLD] ── 쿼리: '{}...' ──────────────────", queryText.substring(0, Math.min(30, queryText.length())));
+        log.info("[#60 THRESHOLD] {:20s} | score  | 0.60 | 0.70 | 0.75 | 0.80 | 0.85", "노트 제목");
+        candidates.forEach(doc -> {
+            double score = extractScore(doc);
+            String title = getMeta(doc, "title");
+            log.info("[#60 THRESHOLD] {:20s} | {:.4f} |  {}   |  {}   |  {}   |  {}   |  {}  ",
+                    title.length() > 20 ? title.substring(0, 20) : title,
+                    score,
+                    score >= 0.60 ? "O" : "X",
+                    score >= 0.70 ? "O" : "X",
+                    score >= 0.75 ? "O" : "X",
+                    score >= 0.80 ? "O" : "X",
+                    score >= 0.85 ? "O" : "X");
+        });
+        log.info("[#60 THRESHOLD] 총 {}건 (threshold=0.50 기준)", candidates.size());
     }
 }
