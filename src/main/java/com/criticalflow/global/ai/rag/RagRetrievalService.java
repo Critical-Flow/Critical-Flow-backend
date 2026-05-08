@@ -1,6 +1,7 @@
 package com.criticalflow.global.ai.rag;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RagRetrievalService {
@@ -38,6 +40,8 @@ public class RagRetrievalService {
 
         List<Document> merged = mergeWithRRF(denseResults, sparseResults, maxResults);
 
+        // [#59 임시 로그 — 2차 필터 노이즈 감소 효과 측정 후 제거]
+        long beforeFilter = merged.size();
         List<RagContext.RetrievedChunk> chunks = merged.stream()
                 .filter(doc -> isTopicRelevant(doc, queryText))
                 .map(doc -> RagContext.RetrievedChunk.builder()
@@ -47,6 +51,13 @@ public class RagRetrievalService {
                         .score(extractScore(doc))
                         .build())
                 .toList();
+        if (beforeFilter > 0) {
+            long afterFilter = chunks.size();
+            String rate = String.format("%.1f", (beforeFilter - afterFilter) * 100.0 / beforeFilter);
+            log.info("[RAG 필터] 쿼리='{}' | RRF 후: {}건 → 2차 필터 후: {}건 | 제거율: {}%",
+                    queryText, beforeFilter, afterFilter, rate);
+        }
+        // [#59 임시 로그 끝]
 
         return RagContext.builder().chunks(chunks).build();
     }
@@ -123,21 +134,25 @@ public class RagRetrievalService {
     // ── 2차 필터 ──────────────────────────────────────────────────────────────
 
     private boolean isTopicRelevant(Document doc, String queryText) {
-        String[] keywords = queryText.toLowerCase().split("\\s+");
         String content = doc.getText().toLowerCase();
 
         boolean hasKorean = queryText.chars().anyMatch(c -> c >= 0xAC00 && c <= 0xD7A3);
-        int minLength = hasKorean ? 1 : 3;
+        // 한국어 2자 이상, 영어 4자 이상만 의미 있는 키워드로 인정
+        // queryText가 노트 전체 내용일 때 단순 조사/어미가 키워드로 잡히는 것을 방지
+        int minLength = hasKorean ? 2 : 4;
 
-        long significant = Arrays.stream(keywords).filter(k -> k.length() >= minLength).count();
-        if (significant == 0) return true;
-
-        long matched = Arrays.stream(keywords)
+        List<String> keywords = Arrays.stream(queryText.toLowerCase().split("\\s+"))
                 .filter(k -> k.length() >= minLength)
-                .filter(content::contains)
-                .count();
+                .distinct()
+                .limit(20) // 긴 노트 쿼리 대응: 상위 20개 키워드만 사용
+                .collect(Collectors.toList());
 
-        return (double) matched / significant >= 0.2;
+        if (keywords.isEmpty()) return true;
+
+        long matched = keywords.stream().filter(content::contains).count();
+
+        // 임계값 0.1: 노트 전체를 쿼리로 쓸 때 20% 기준은 과도하게 엄격함
+        return (double) matched / keywords.size() >= 0.1;
     }
 
     private String getMeta(Document doc, String key) {
