@@ -228,4 +228,113 @@ class RagRetrievalServiceTest {
 
         assertThat(result.getChunks()).hasSizeLessThanOrEqualTo(4);
     }
+
+    // ── RRF k=60 알고리즘 검증 (#63) ─────────────────────────────────────────
+
+    @Nested
+    @DisplayName("RRF k=60 알고리즘")
+    class RrfAlgorithmTest {
+
+        /**
+         * mergeWithRRF(dense, sparse, limit) — private 메서드를 ReflectionTestUtils로 직접 호출.
+         */
+        @SuppressWarnings("unchecked")
+        private List<Document> mergeWithRRF(List<Document> dense, List<Document> sparse, int limit) {
+            return (List<Document>) ReflectionTestUtils.invokeMethod(
+                    service, "mergeWithRRF", dense, sparse, limit);
+        }
+
+        private Document simpleDoc(String id) {
+            return new Document(id, "content", Map.of("note_id", id, "title", id, "session_id", "1"));
+        }
+
+        @Test
+        @DisplayName("양쪽 등장 문서가 Dense 단독 최상위 문서보다 높은 점수를 받는다")
+        void bothListDocumentBeatsDenseOnlyTop() {
+            // both(A): Dense rank0 + Sparse rank1 → 1/61 + 1/62 = 0.03252
+            // denseOnly(B): Dense rank1 → 1/62 = 0.01613
+            // sparseOnly(C): Sparse rank0 → 1/61 = 0.01639
+            // 순위: A > C > B
+            Document docA = simpleDoc("A");
+            Document docB = simpleDoc("B");
+            Document docC = simpleDoc("C");
+
+            List<Document> result = mergeWithRRF(
+                    List.of(docA, docB),
+                    List.of(docC, docA),
+                    3);
+
+            assertThat(result.get(0).getId()).isEqualTo("A");
+        }
+
+        @Test
+        @DisplayName("k=60 소규모 환경에서 양쪽 최하위 등장 문서도 단독 Dense 최상위보다 높은 점수를 받는다")
+        void bothListLastRankStillBeatsDenseOnlyTopWithK60() {
+            // both(F): Dense rank5 + Sparse rank5 → 2/(60+6) = 0.03030
+            // denseOnly(A): Dense rank0 → 1/(60+1) = 0.01639
+            // k=60이 최대 후보 6개의 소규모 환경에서도 양쪽 등장 우선 원칙을 유지하는지 검증
+            Document docA = simpleDoc("A");
+            Document docB = simpleDoc("B");
+            Document docC = simpleDoc("C");
+            Document docD = simpleDoc("D");
+            Document docE = simpleDoc("E");
+            Document both = simpleDoc("F");
+
+            List<Document> result = mergeWithRRF(
+                    List.of(docA, docB, docC, docD, docE, both),
+                    List.of(simpleDoc("G"), simpleDoc("H"), simpleDoc("I"), simpleDoc("J"), simpleDoc("K"), both),
+                    6);
+
+            int bothIndex    = result.indexOf(both);
+            int denseOnlyIdx = result.stream()
+                    .map(Document::getId)
+                    .toList()
+                    .indexOf("A");
+
+            assertThat(bothIndex).isLessThan(denseOnlyIdx);
+        }
+
+        @Test
+        @DisplayName("Dense와 Sparse 양쪽 1위 문서가 최고 점수를 받아 Top-1이 된다")
+        void denseAndSparseTop1BecomesFinalTop1() {
+            // star: Dense rank0 + Sparse rank0 → 2/61 = 0.03279 (최대)
+            Document star  = simpleDoc("star");
+            Document other = simpleDoc("other");
+
+            List<Document> result = mergeWithRRF(
+                    List.of(star, other),
+                    List.of(star, other),
+                    2);
+
+            assertThat(result.get(0).getId()).isEqualTo("star");
+        }
+
+        @Test
+        @DisplayName("동일 ID 문서가 Dense와 Sparse에 모두 있어도 결과에 한 번만 포함된다")
+        void duplicateDocumentDeduplicatedInResult() {
+            Document docA = simpleDoc("A");
+            Document docB = simpleDoc("B");
+            Document docC = simpleDoc("C");
+
+            List<Document> result = mergeWithRRF(
+                    List.of(docA, docB),
+                    List.of(docA, docC),
+                    4);
+
+            long countA = result.stream().filter(d -> "A".equals(d.getId())).count();
+            assertThat(countA).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("limit 파라미터로 결과 수를 정확히 제한한다")
+        void respectsLimitParameter() {
+            List<Document> dense  = List.of(
+                    simpleDoc("1"), simpleDoc("2"), simpleDoc("3"), simpleDoc("4"), simpleDoc("5"));
+            List<Document> sparse = List.of(
+                    simpleDoc("6"), simpleDoc("7"), simpleDoc("8"), simpleDoc("9"), simpleDoc("10"));
+
+            assertThat(mergeWithRRF(dense, sparse, 3)).hasSize(3);
+            assertThat(mergeWithRRF(dense, sparse, 1)).hasSize(1);
+        }
+    }
 }
