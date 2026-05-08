@@ -165,4 +165,5 @@ public class RagRetrievalService {
         if (raw instanceof Number n) return n.doubleValue();
         return 0.0;
     }
+
 }
