@@ -53,7 +53,7 @@ spring:
         initialize-schema: true
 
 rag:
-  similarity-threshold: 0.75
+  similarity-threshold: 0.55
   max-results: 4
   focus-lookback-minutes: 15
   bm25-max-results: 10
