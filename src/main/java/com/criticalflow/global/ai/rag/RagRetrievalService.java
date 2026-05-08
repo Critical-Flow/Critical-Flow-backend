@@ -35,9 +35,6 @@ public class RagRetrievalService {
      * RRF    — 두 순위 리스트를 1/(k+rank) 점수로 병합
      */
     public RagContext retrieve(String queryText, Long userId, Long excludeNoteId) {
-        // [#60 임시 — 단일 API 호출로 5개 임계값 비교. 측정 완료 후 제거]
-        logThresholdCandidates(queryText, userId, excludeNoteId);
-
         List<Document> denseResults  = denseSearch(queryText, userId, excludeNoteId);
         List<Document> sparseResults = sparseSearch(queryText, userId, excludeNoteId);
 
@@ -156,32 +153,4 @@ public class RagRetrievalService {
         return 0.0;
     }
 
-    // [#60 임시 — similarity-threshold 최적값 검증. 측정 완료 후 제거]
-    private void logThresholdCandidates(String queryText, Long userId, Long excludeNoteId) {
-        // threshold=0.0으로 전체 후보를 가져온 뒤 Java 단에서 각 임계값 통과 여부 판정
-        List<Document> candidates = vectorStore.similaritySearch(SearchRequest.builder()
-                .query(queryText)
-                .topK(10)
-                .similarityThreshold(0.0)
-                .filterExpression("user_id == '" + userId + "' && note_id != '" + excludeNoteId + "'")
-                .build());
-
-        log.info("[#60] ── 쿼리: '{}'... ──────────────────",
-                queryText.substring(0, Math.min(30, queryText.length())));
-        log.info("[#60] {}", String.format("%-25s | score  | 0.60 | 0.70 | 0.75 | 0.80 | 0.85", "노트 제목"));
-        candidates.forEach(doc -> {
-            double score = extractScore(doc);
-            String title = getMeta(doc, "title");
-            String row = String.format("%-25s | %.4f |  %s  |  %s  |  %s  |  %s  |  %s",
-                    title.length() > 25 ? title.substring(0, 25) : title,
-                    score,
-                    score >= 0.60 ? "O" : "X",
-                    score >= 0.70 ? "O" : "X",
-                    score >= 0.75 ? "O" : "X",
-                    score >= 0.80 ? "O" : "X",
-                    score >= 0.85 ? "O" : "X");
-            log.info("[#60] {}", row);
-        });
-        log.info("[#60] 총 {}건", candidates.size());
-    }
 }

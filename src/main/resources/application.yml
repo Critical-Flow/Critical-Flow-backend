@@ -53,7 +53,7 @@ spring:
         initialize-schema: true
 
 rag:
-  similarity-threshold: 0.55
+  similarity-threshold: 0.55  # [#60 측정 중] 1차 측정 완료 후 0.55로 변경
   max-results: 4
   focus-lookback-minutes: 15
   bm25-max-results: 10
