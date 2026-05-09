@@ -9,148 +9,74 @@
 
 ---
 
-## 노트 카테고리 구성
+## 실제 노트 목록 (noteId 1~20)
 
-### 카테고리 A — 코드 식별자 핵심 (noteId 11~15)
-정확한 함수명·클래스명이 핵심인 노트. Dense 검색이 놓치고 Sparse가 잡을 것으로 예상.
-
-```bash
-# noteId=11: HashMap 구현
-curl -s -X POST http://localhost:8080/api/notes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "sessionId": 1,
-    "title": "HashMap put get 구현",
-    "content": "HashMap의 put() 메서드는 키를 해시 함수에 통과시켜 버킷 인덱스를 계산한다. get()은 동일한 해시로 버킷을 찾아 equals()로 키를 비교한다. ```java\npublic V put(K key, V value) {\n    int hash = hash(key);\n    int index = hash & (capacity - 1);\n    Node<K,V> node = table[index];\n    // 충돌 처리: 체이닝\n    while (node != null) {\n        if (node.hash == hash && key.equals(node.key)) {\n            node.value = value;\n            return;\n        }\n        node = node.next;\n    }\n    table[index] = new Node<>(hash, key, value, table[index]);\n}\n```"
-  }'
-
-# noteId=12: factorial 재귀 구현
-curl -s -X POST http://localhost:8080/api/notes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "sessionId": 1,
-    "title": "factorial 재귀 구현",
-    "content": "factorial 함수는 재귀로 구현할 수 있다. n이 0이면 1을 반환하는 기저 조건이 반드시 있어야 한다. ```java\npublic static int factorial(int n) {\n    if (n == 0) return 1;\n    return n * factorial(n - 1);\n}\n// factorial(5) = 120\n```\n메모이제이션을 적용하면 중복 계산을 피할 수 있다."
-  }'
-
-# noteId=13: BinarySearch 구현
-curl -s -X POST http://localhost:8080/api/notes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "sessionId": 1,
-    "title": "BinarySearch 반복문 구현",
-    "content": "BinarySearch는 정렬된 배열에서 O(log n)으로 탐색한다. ```java\npublic static int binarySearch(int[] arr, int target) {\n    int left = 0, right = arr.length - 1;\n    while (left <= right) {\n        int mid = left + (right - left) / 2;\n        if (arr[mid] == target) return mid;\n        if (arr[mid] < target) left = mid + 1;\n        else right = mid - 1;\n    }\n    return -1;\n}\n```\nleft + (right - left) / 2 로 계산해야 정수 오버플로우를 방지할 수 있다."
-  }'
-
-# noteId=14: LinkedList Node 구현
-curl -s -X POST http://localhost:8080/api/notes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "sessionId": 1,
-    "title": "LinkedList Node 삽입 삭제",
-    "content": "LinkedList의 Node는 data와 next 포인터로 구성된다. ```java\nclass Node<T> {\n    T data;\n    Node<T> next;\n    Node(T data) { this.data = data; }\n}\npublic void addFirst(T data) {\n    Node<T> newNode = new Node<>(data);\n    newNode.next = head;\n    head = newNode;\n    size++;\n}\npublic T removeFirst() {\n    T data = head.data;\n    head = head.next;\n    size--;\n    return data;\n}\n```"
-  }'
-
-# noteId=15: QuickSort 피벗 구현
-curl -s -X POST http://localhost:8080/api/notes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "sessionId": 1,
-    "title": "QuickSort 피벗 파티션 구현",
-    "content": "QuickSort는 피벗을 기준으로 배열을 분할한 뒤 재귀적으로 정렬한다. ```java\npublic static void quickSort(int[] arr, int low, int high) {\n    if (low < high) {\n        int pivot = partition(arr, low, high);\n        quickSort(arr, low, pivot - 1);\n        quickSort(arr, pivot + 1, high);\n    }\n}\nprivate static int partition(int[] arr, int low, int high) {\n    int pivot = arr[high];\n    int i = low - 1;\n    for (int j = low; j < high; j++) {\n        if (arr[j] <= pivot) swap(arr, ++i, j);\n    }\n    swap(arr, i + 1, high);\n    return i + 1;\n}\n```"
-  }'
-```
-
-### 카테고리 B — 짧은 한국어 CS 용어 핵심 (noteId 16~20)
-"큐", "스택", "힙" 등 1~2자 한국어 용어가 핵심인 노트. Dense 검색이 짧은 단어를 놓칠 수 있음.
-
-```bash
-# noteId=16: 큐 활용 사례
-curl -s -X POST http://localhost:8080/api/notes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "sessionId": 1,
-    "title": "큐 활용 사례와 구현 방식",
-    "content": "큐는 FIFO 방식으로 작동하며 BFS 구현, 프린터 스풀링, 캐시 교체 정책에 활용된다. 큐의 enqueue는 뒤에 추가, dequeue는 앞에서 제거한다. 원형 큐는 배열 낭비를 방지하며 (rear + 1) % capacity 공식으로 인덱스를 순환시킨다. 우선순위 큐는 힙으로 구현하며 O(log n)으로 삽입과 삭제를 처리한다."
-  }'
-
-# noteId=17: 스택 활용과 구현
-curl -s -X POST http://localhost:8080/api/notes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "sessionId": 1,
-    "title": "스택 활용과 구현 방식",
-    "content": "스택은 LIFO 방식으로 작동하며 함수 호출 스택, 괄호 검사, 수식 평가에 활용된다. 스택의 push는 top에 추가, pop은 top에서 제거하며 모두 O(1)이다. 재귀를 명시적 스택으로 변환하면 스택 오버플로우를 방지할 수 있다. 단조 스택은 다음 큰 원소 찾기 등 최적화 문제에 쓰인다."
-  }'
-
-# noteId=18: 힙 연산과 활용
-curl -s -X POST http://localhost:8080/api/notes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "sessionId": 1,
-    "title": "힙 연산과 우선순위 큐",
-    "content": "힙은 완전 이진 트리로 최대힙과 최소힙이 있다. 힙의 삽입은 마지막 위치에 추가 후 heapify-up으로 O(log n), 삭제는 루트 제거 후 heapify-down으로 O(log n)이다. 힙은 우선순위 큐 구현에 사용되며 다익스트라 알고리즘에서 최단 거리 노드를 빠르게 추출한다. k번째 최솟값 찾기는 크기 k의 최대힙으로 O(n log k)에 해결 가능하다."
-  }'
-
-# noteId=19: 트리 종류와 특성
-curl -s -X POST http://localhost:8080/api/notes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "sessionId": 1,
-    "title": "트리 종류와 특성 비교",
-    "content": "트리는 계층적 자료구조로 루트, 내부 노드, 리프로 구성된다. 이진 탐색 트리(BST)는 왼쪽 < 부모 < 오른쪽 조건을 유지한다. 균형 트리인 AVL 트리와 Red-Black 트리는 O(log n)의 탐색을 보장한다. B-트리는 디스크 기반 데이터베이스 인덱스에 사용되며 노드당 여러 키를 저장한다. 힙도 트리의 일종이지만 BST 조건을 따르지 않는다."
-  }'
-
-# noteId=20: 그래프와 탐색
-curl -s -X POST http://localhost:8080/api/notes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "sessionId": 1,
-    "title": "그래프 표현과 탐색 비교",
-    "content": "그래프는 정점(Vertex)과 간선(Edge)으로 구성된다. 인접 행렬은 O(1) 탐색, O(V²) 공간이며 인접 리스트는 O(V+E) 공간이다. BFS는 큐를 사용해 최단 경로를 탐색하고 DFS는 스택(재귀)으로 경로 탐색에 활용된다. 위상 정렬은 DAG에서 DFS 기반으로 구현하며 강한 연결 요소는 코사라주 알고리즘으로 찾는다."
-  }'
-```
+| noteId | 제목 | 분류 |
+|--------|------|------|
+| 1 | HashMap 자료구조 | 자료구조 |
+| 2 | 스택(Stack) 자료구조 | 자료구조 |
+| 3 | 큐(Queue) 자료구조 | 자료구조 |
+| 4 | 이진 탐색(Binary Search) | 알고리즘 |
+| 5 | 재귀(Recursion) 알고리즘 | 알고리즘 |
+| 6 | 동적 프로그래밍(DP) | 알고리즘 |
+| 7 | 퀵정렬(Quick Sort) | 알고리즘 |
+| 8 | 너비 우선 탐색(BFS) | 알고리즘 |
+| 9 | 깊이 우선 탐색(DFS) | 알고리즘 |
+| 10 | 힙(Heap) 자료구조 | 자료구조 |
+| 11 | 트리 순회(Tree Traversal) | 자료구조 |
+| 12 | 연결 리스트(Linked List) | 자료구조 |
+| 13 | 정렬 알고리즘 비교 | 알고리즘 |
+| 14 | Java 메모리 관리와 GC | Java |
+| 15 | Java 멀티스레딩과 동기화 | Java |
+| 16 | 데이터베이스 인덱스(Index) | DB |
+| 17 | JPA 연관관계 매핑 | Spring |
+| 18 | REST API 설계 원칙 | Web |
+| 19 | 디자인 패턴 — 싱글톤(Singleton) | 패턴 |
+| 20 | 시간복잡도(Time Complexity) 분석 | CS 기초 |
 
 ---
 
-## Ground Truth 정의 (수동 작업)
+## 카테고리 구성
 
-아래 표에서 각 쿼리 노트와 **실제로 연관된** 과거 노트를 ✅로 표시한다.
-연관 기준: "이 노트를 공부한 학생에게 과거 노트를 참조한 연결 질문을 던질 수 있는가?"
+### 카테고리 A — 기술 식별자/메서드명이 포함된 노트
+텍스트 내에 put(), get(), Arrays.sort(), LinkedList, Node 등 Sparse가 잡기 유리한 식별자가 등장하는 노트.
 
-### 카테고리 A Ground Truth
+**쿼리 노트 5개**: noteId = 1, 4, 7, 12, 13
 
-| noteId | 쿼리 노트 | 정답 연관 노트 | 정답 수 |
-|--------|---------|------------|-------|
-| 11 | HashMap put/get 구현 | #1 HashMap 자료구조, #14 LinkedList Node 구현 | **2** |
-| 12 | factorial 재귀 구현 | #5 재귀 알고리즘, #6 DP, #2 스택, #17 스택 활용 | **4** |
-| 13 | BinarySearch 구현 | #4 이진 탐색, #7 퀵정렬, #15 QuickSort 구현, #19 트리 종류 | **4** |
-| 14 | LinkedList Node 구현 | #1 HashMap 자료구조, #2 스택, #3 큐, #11 HashMap 구현 | **4** |
-| 15 | QuickSort 피벗 구현 | #7 퀵정렬, #13 BinarySearch 구현, #10 힙 자료구조 | **3** |
+### 카테고리 B — 짧은 한국어 CS 용어가 핵심인 노트
+"스택", "큐", "힙", "트리" 등 1~2자 한국어 용어가 핵심 개념인 노트. Dense 임베딩이 짧은 단어를 잘 잡지 못할 수 있음.
 
-**판단 근거:**
-- 11: HashMap 이론(#1)은 직접 연결, LinkedList(#14)는 체이닝 구조로 연결
-- 12: factorial은 재귀(#5)의 대표 예시, DP(#6)는 메모이제이션 연결, 스택(#2, #17)은 재귀 호출 스택 연결
-- 13: 이진 탐색 이론(#4)은 직접, 퀵정렬(#7)/QuickSort 구현(#15)은 분할 정복 연결, 트리(#19)는 BST 연결
-- 14: HashMap(#1, #11)은 체이닝 연결, 스택(#2)/큐(#3)는 LinkedList로 구현 가능
-- 15: 퀵정렬 이론(#7)은 직접, BinarySearch(#13)는 분할 정복, 힙(#10)은 힙 정렬과 비교
+**쿼리 노트 5개**: noteId = 2, 3, 8, 10, 11
 
-### 카테고리 B Ground Truth
+---
+
+## Ground Truth (정답 연관 노트)
+
+**기준**: "이 노트를 공부한 학생에게 과거 노트를 참조해 Spaced Recall 질문을 던질 수 있는가?"
+
+### 카테고리 A
 
 | noteId | 쿼리 노트 | 정답 연관 노트 | 정답 수 |
 |--------|---------|------------|-------|
-| 16 | 큐 활용 사례 | #3 큐 자료구조, #8 BFS, #10 힙 자료구조, #18 힙 연산, #20 그래프 탐색 | **5** |
-| 17 | 스택 활용 | #2 스택 자료구조, #9 DFS, #5 재귀 알고리즘, #12 factorial 구현 | **4** |
-| 18 | 힙 연산 | #10 힙 자료구조, #3 큐 자료구조, #16 큐 활용 사례 | **3** |
-| 19 | 트리 종류 | #8 BFS, #9 DFS, #4 이진 탐색, #10 힙 자료구조, #18 힙 연산 | **5** |
-| 20 | 그래프 탐색 | #8 BFS, #9 DFS, #3 큐 자료구조, #2 스택, #19 트리 종류 | **5** |
+| 1 | HashMap 자료구조 | #12 연결 리스트(체이닝 구현), #11 트리 순회(Java 8 Red-Black Tree), #20 시간복잡도(O(1) 평균) | **3** |
+| 4 | 이진 탐색 | #7 퀵정렬(분할 정복), #13 정렬 알고리즘 비교(정렬 전제), #11 트리 순회(BST 중위 순회), #20 시간복잡도(O(log n)) | **4** |
+| 7 | 퀵정렬 | #4 이진 탐색(분할 정복), #13 정렬 알고리즘 비교(포함), #5 재귀(재귀적 정렬), #20 시간복잡도(O(n log n)) | **4** |
+| 12 | 연결 리스트 | #1 HashMap(체이닝), #2 스택(LinkedList로 구현), #3 큐(LinkedList로 구현) | **3** |
+| 13 | 정렬 알고리즘 비교 | #7 퀵정렬(포함), #10 힙(힙 정렬 포함), #20 시간복잡도(복잡도 비교) | **3** |
 
-**판단 근거:**
-- 16: 큐 이론(#3)은 직접, BFS(#8)/그래프(#20)는 큐 활용 사례, 힙(#10, #18)은 우선순위 큐 연결
-- 17: 스택 이론(#2)은 직접, DFS(#9)는 스택 활용, 재귀(#5)/factorial(#12)는 재귀↔스택 변환 연결
-- 18: 힙 이론(#10)은 직접, 큐(#3, #16)는 우선순위 큐로 연결
-- 19: BFS/DFS(#8, #9)는 트리 순회로 연결, 이진 탐색(#4)은 BST 연결, 힙(#10, #18)은 힙도 트리
-- 20: BFS(#8)/DFS(#9)는 직접, 큐(#3)/스택(#2)는 탐색 구현 자료구조, 트리(#19)는 그래프의 특수 케이스
+**A 카테고리 전체 정답 수 합계**: 3+4+4+3+3 = **17**
+
+### 카테고리 B
+
+| noteId | 쿼리 노트 | 정답 연관 노트 | 정답 수 |
+|--------|---------|------------|-------|
+| 2 | 스택(Stack) | #3 큐(LIFO vs FIFO 대비), #9 DFS(스택 활용), #5 재귀(호출 스택), #12 연결 리스트(스택 구현) | **4** |
+| 3 | 큐(Queue) | #2 스택(FIFO vs LIFO 대비), #8 BFS(큐 활용), #10 힙(우선순위 큐), #12 연결 리스트(큐 구현) | **4** |
+| 8 | BFS | #3 큐(BFS가 큐 사용), #9 DFS(대비 개념), #11 트리 순회(레벨 순서) | **3** |
+| 10 | 힙(Heap) | #3 큐(우선순위 큐), #13 정렬 알고리즘 비교(힙 정렬), #11 트리 순회(트리 구조), #20 시간복잡도(O(log n)) | **4** |
+| 11 | 트리 순회 | #8 BFS(레벨 순서 순회), #9 DFS(DFS 순회), #4 이진 탐색(BST), #10 힙(힙도 트리) | **4** |
+
+**B 카테고리 전체 정답 수 합계**: 4+4+3+4+4 = **19**
 
 ---
 
@@ -158,19 +84,19 @@ curl -s -X POST http://localhost:8080/api/notes \
 
 ### 1단계 — Dense-only 측정
 
-`application.yml`에서 `bm25-max-results: 0` 설정 후 서버 재시작.
+`application.yml`에서 `bm25-max-results: 0`으로 변경 후 서버 재시작.
 
 ```bash
-# 카테고리 A 노트 (noteId=11~15) 대화 시작
-for i in {11..15}; do
+# 카테고리 A 쿼리 노트 (noteId=1, 4, 7, 12, 13)
+for i in 1 4 7 12 13; do
   curl -s -X POST http://localhost:8080/api/v1/conversations \
     -H "Content-Type: application/json" \
     -d "{\"noteId\": $i, \"type\": \"QUESTION\"}"
   sleep 0.5
 done
 
-# 카테고리 B 노트 (noteId=16~20) 대화 시작
-for i in {16..20}; do
+# 카테고리 B 쿼리 노트 (noteId=2, 3, 8, 10, 11)
+for i in 2 3 8 10 11; do
   curl -s -X POST http://localhost:8080/api/v1/conversations \
     -H "Content-Type: application/json" \
     -d "{\"noteId\": $i, \"type\": \"QUESTION\"}"
@@ -178,12 +104,12 @@ for i in {16..20}; do
 done
 ```
 
-로그에서 `[#62] [Dense-only] 최종 Top-4:` 라인을 수집해 아래 표를 채운다.
+로그에서 `[#62] [Dense-only] 최종 Top-4:` 라인 10개 수집.
 
 ### 2단계 — 하이브리드 측정
 
-`application.yml`에서 `bm25-max-results: 10` 복원 후 서버 재시작.
-동일한 curl 명령어 재실행. `[#62] [하이브리드] 최종 Top-4:` 라인 수집.
+`application.yml`에서 `bm25-max-results: 10`으로 복원 후 서버 재시작.
+동일 curl 명령어 재실행. `[#62] [하이브리드] 최종 Top-4:` 라인 수집.
 
 ---
 
@@ -191,47 +117,47 @@ done
 
 ### Dense-only 결과
 
-| noteId | 쿼리 노트 | 카테고리 | Top-4 결과 | 정답 포함 수 | Recall@4 |
-|--------|---------|---------|-----------|-----------|---------|
-| 11 | HashMap put/get | A | | | |
-| 12 | factorial 재귀 | A | | | |
-| 13 | BinarySearch | A | | | |
-| 14 | LinkedList Node | A | | | |
-| 15 | QuickSort 피벗 | A | | | |
-| 16 | 큐 활용 | B | | | |
-| 17 | 스택 활용 | B | | | |
-| 18 | 힙 연산 | B | | | |
-| 19 | 트리 종류 | B | | | |
-| 20 | 그래프 탐색 | B | | | |
+| noteId | 쿼리 노트 | 카테고리 | Top-4 결과 | 정답 수 | Recall@4 |
+|--------|---------|---------|-----------|-------|---------|
+| 1 | HashMap | A | | / 3 | |
+| 4 | 이진 탐색 | A | | / 4 | |
+| 7 | 퀵정렬 | A | | / 4 | |
+| 12 | 연결 리스트 | A | | / 3 | |
+| 13 | 정렬 알고리즘 비교 | A | | / 3 | |
 | | **카테고리 A 평균** | | | | |
+| 2 | 스택 | B | | / 4 | |
+| 3 | 큐 | B | | / 4 | |
+| 8 | BFS | B | | / 3 | |
+| 10 | 힙 | B | | / 4 | |
+| 11 | 트리 순회 | B | | / 4 | |
 | | **카테고리 B 평균** | | | | |
 
 ### 하이브리드 결과
 
-| noteId | 쿼리 노트 | 카테고리 | Top-4 결과 | 정답 포함 수 | Recall@4 |
-|--------|---------|---------|-----------|-----------|---------|
-| 11 | HashMap put/get | A | | | |
-| 12 | factorial 재귀 | A | | | |
-| 13 | BinarySearch | A | | | |
-| 14 | LinkedList Node | A | | | |
-| 15 | QuickSort 피벗 | A | | | |
-| 16 | 큐 활용 | B | | | |
-| 17 | 스택 활용 | B | | | |
-| 18 | 힙 연산 | B | | | |
-| 19 | 트리 종류 | B | | | |
-| 20 | 그래프 탐색 | B | | | |
+| noteId | 쿼리 노트 | 카테고리 | Top-4 결과 | 정답 수 | Recall@4 |
+|--------|---------|---------|-----------|-------|---------|
+| 1 | HashMap | A | | / 3 | |
+| 4 | 이진 탐색 | A | | / 4 | |
+| 7 | 퀵정렬 | A | | / 4 | |
+| 12 | 연결 리스트 | A | | / 3 | |
+| 13 | 정렬 알고리즘 비교 | A | | / 3 | |
 | | **카테고리 A 평균** | | | | |
+| 2 | 스택 | B | | / 4 | |
+| 3 | 큐 | B | | / 4 | |
+| 8 | BFS | B | | / 3 | |
+| 10 | 힙 | B | | / 4 | |
+| 11 | 트리 순회 | B | | / 4 | |
 | | **카테고리 B 평균** | | | | |
 
 ---
 
-## Recall@4 계산 방법
+## Recall@4 계산
 
 ```
-Recall@4 = (Top-4 결과에 포함된 정답 노트 수) / (전체 정답 노트 수)
+Recall@4 = (Top-4에 포함된 정답 노트 수) / (전체 정답 노트 수)
 ```
 
-예시: 정답 노트가 3개인데 Top-4에 2개 포함 → Recall@4 = 2/3 = 0.67
+예: 정답이 4개인데 Top-4에 2개 포함 → Recall@4 = 2/4 = 0.50
 
 ---
 
@@ -239,15 +165,15 @@ Recall@4 = (Top-4 결과에 포함된 정답 노트 수) / (전체 정답 노트
 
 | 조건 | 판단 |
 |------|------|
-| 카테고리 A 또는 B에서 하이브리드 Recall@4 - Dense Recall@4 ≥ 0.1 | 하이브리드 효과 확인 ✅ |
-| 두 카테고리 모두 차이 < 0.1 | 하이브리드 추가 비용 재검토 |
-| 하이브리드가 Dense보다 낮은 Recall | 2차 필터 설정 재검토 필요 |
+| A 또는 B에서 하이브리드 - Dense ≥ 0.1 | 하이브리드 도입 효과 확인 ✅ |
+| 두 카테고리 모두 차이 < 0.1 | Sparse 추가 비용 재검토 |
+| 하이브리드 < Dense | 2차 필터 설정 재검토 |
 
 ---
 
-## 측정 로그 제거 (완료 후)
+## 측정 완료 후 로그 제거
 
-`RagRetrievalService.java`에서 `[#62]` 주석이 달린 로그 블록 2개 제거:
-1. `retrieve()` 내 Dense/Sparse 건수 로그
-2. `retrieve()` 내 최종 Top-4 로그
-3. `sparseSearch()` 내 `if (bm25MaxResults == 0) return List.of();` 라인
+`RagRetrievalService.java`에서 `[#62]` 블록 3곳 제거:
+1. `retrieve()` Dense/Sparse 건수 로그
+2. `retrieve()` 최종 Top-4 로그
+3. `sparseSearch()` 내 `if (bm25MaxResults == 0) return List.of();`
