@@ -14,19 +14,19 @@ import java.util.Map;
 public class NoteEmbeddingService {
 
     private final VectorStore vectorStore;
-    private final NotePreprocessor notePreprocessor;
     private final NoteMetadataExtractor metadataExtractor;
 
     /**
      * 노트를 Chroma에 임베딩한다.
-     * 임베딩 전 코드 블록을 식별자/주석 텍스트로 전처리해 벡터 품질을 향상시킨다.
+     * [#57] text-embedding-3-small은 코드+자연어 혼합 문서를 원본 그대로 처리할 때
+     * 품질이 더 높다(Recall@4 40% → 100%). NotePreprocessor 호출을 제거함.
      * 동일 note_id로 재저장 시 기존 벡터를 먼저 삭제하여 버전 일관성을 유지한다.
      */
     public void embed(StudyNote note) {
         String documentId = toDocumentId(note.getNoteId());
         vectorStore.delete(List.of(documentId));
 
-        String processedContent = notePreprocessor.preprocessForEmbedding(note.getContent());
+        String processedContent = note.getContent();
         String languages = String.join(",", metadataExtractor.extractLanguages(note.getContent()));
         String headers = String.join(",", metadataExtractor.extractHeaders(note.getContent()));
 
