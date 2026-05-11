@@ -47,6 +47,12 @@ public class NoteController {
         return ResponseEntity.ok(noteService.getNotesByUser(userId));
     }
 
+    @PostMapping("/reembed")
+    public ResponseEntity<String> reembedAll() {
+        int count = noteService.reembedAll();
+        return ResponseEntity.ok("재임베딩 완료: " + count + "개");
+    }
+
     @GetMapping("/{noteId}")
     public ResponseEntity<NoteResponse> getOne(
             @RequestParam Long userId,

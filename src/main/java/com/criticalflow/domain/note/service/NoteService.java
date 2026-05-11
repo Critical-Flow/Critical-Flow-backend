@@ -73,6 +73,13 @@ public class NoteService {
         return NoteResponse.from(note);
     }
 
+    @Transactional(readOnly = true)
+    public int reembedAll() {
+        List<StudyNote> all = noteRepository.findAll();
+        all.forEach(noteEmbeddingService::embed);
+        return all.size();
+    }
+
     private StudyNote getOwnedNote(Long userId, Long noteId) {
         StudyNote note = noteRepository.findById(noteId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found"));
