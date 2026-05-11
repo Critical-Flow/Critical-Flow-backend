@@ -38,10 +38,15 @@ public class RagRetrievalService {
         List<Document> denseResults  = denseSearch(queryText, userId, excludeNoteId);
         List<Document> sparseResults = sparseSearch(queryText, userId, excludeNoteId);
 
+        // [#62 측정 로그 — Dense-only vs 하이브리드 Recall@4 비교. 측정 완료 후 제거]
+        log.info("[#62] Dense: {}건 {}, Sparse: {}건 {}",
+                denseResults.size(),
+                denseResults.stream().map(d -> getMeta(d, "title")).toList(),
+                sparseResults.size(),
+                sparseResults.stream().map(d -> getMeta(d, "title")).toList());
+
         List<Document> merged = mergeWithRRF(denseResults, sparseResults, maxResults);
 
-        // [#59 임시 로그 — 2차 필터 노이즈 감소 효과 측정 후 제거]
-        long beforeFilter = merged.size();
         List<RagContext.RetrievedChunk> chunks = merged.stream()
                 .filter(doc -> isTopicRelevant(doc, queryText))
                 .map(doc -> RagContext.RetrievedChunk.builder()
@@ -51,13 +56,11 @@ public class RagRetrievalService {
                         .score(extractScore(doc))
                         .build())
                 .toList();
-        if (beforeFilter > 0) {
-            long afterFilter = chunks.size();
-            String rate = String.format("%.1f", (beforeFilter - afterFilter) * 100.0 / beforeFilter);
-            log.info("[RAG 필터] 쿼리='{}' | RRF 후: {}건 → 2차 필터 후: {}건 | 제거율: {}%",
-                    queryText, beforeFilter, afterFilter, rate);
-        }
-        // [#59 임시 로그 끝]
+
+        // [#62 측정 로그 — 측정 완료 후 제거]
+        String mode = bm25MaxResults == 0 ? "Dense-only" : "하이브리드";
+        log.info("[#62] [{}] 최종 Top-4: {}",
+                mode, chunks.stream().map(RagContext.RetrievedChunk::getTitle).toList());
 
         return RagContext.builder().chunks(chunks).build();
     }
@@ -76,6 +79,7 @@ public class RagRetrievalService {
     // ── Sparse 검색 (키워드 기반) ─────────────────────────────────────────────
 
     private List<Document> sparseSearch(String queryText, Long userId, Long excludeNoteId) {
+        if (bm25MaxResults == 0) return List.of(); // Dense-only 모드 (#62 측정용)
         List<String> keywords = extractKeyTerms(queryText);
         if (keywords.isEmpty()) return List.of();
 
