@@ -357,4 +357,4 @@ rag:
 **인프라 정보**:
 - ChromaDB 컬렉션: `criticalflow-notes`
 - 임베딩 모델: `text-embedding-3-small` (OpenAI)
-- LLM: `gpt-4o` (질문 생성), `gpt-4o-mini` (질문 타입 분류)
+- LLM: `gpt-4o` (질문 생성 + 질문 타입 분류)

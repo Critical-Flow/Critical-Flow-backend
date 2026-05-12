@@ -1,7 +1,6 @@
-# 고도화 완료 후 프로젝트 구조
+# 현재 프로젝트 구조
 
-> 현재 구조 기준으로 이슈 #1 ~ #11 완료 후의 목표 파일 구조입니다.
-> 🆕 = 신규 파일, ✏️ = 기존 파일 수정
+> 현재 `develop` 브랜치 기준 실제 파일 구조입니다.
 
 ---
 
@@ -13,23 +12,23 @@ src/main/java/com/criticalflow/
 ├── CriticalFlowApplication.java
 │
 ├── domain/
-│   ├── conversation/                             ✏️ domain/ai + conversation 패키지 통합
+│   ├── conversation/
 │   │   ├── controller/
-│   │   │   └── ConversationController.java       ✏️ questionType 파라미터 추가
+│   │   │   └── ConversationController.java
 │   │   ├── dto/
 │   │   │   ├── ConversationResponse.java
 │   │   │   ├── MessageResponse.java
 │   │   │   ├── SendMessageRequest.java
-│   │   │   └── StartConversationRequest.java     ✏️ questionType 필드 추가
+│   │   │   └── StartConversationRequest.java
 │   │   ├── entity/
-│   │   │   ├── AiConversation.java               ✏️ questionType 필드 추가
+│   │   │   ├── AiConversation.java               questionType 필드 포함
 │   │   │   ├── AiMessage.java
-│   │   │   └── QuestionType.java                 🆕 TYPE_A ~ TYPE_F enum
+│   │   │   └── QuestionType.java                 TYPE_A ~ TYPE_F enum
 │   │   ├── repository/
-│   │   │   ├── AiConversationRepository.java     ✏️ fine-tuning 데이터 추출 쿼리 추가
+│   │   │   ├── AiConversationRepository.java
 │   │   │   └── AiMessageRepository.java
 │   │   └── service/
-│   │       └── ConversationService.java          ✏️ questionType 저장 로직 추가
+│   │       └── ConversationService.java
 │   ├── focus/
 │   │   ├── entity/
 │   │   │   └── FocusEvent.java
@@ -37,17 +36,17 @@ src/main/java/com/criticalflow/
 │   │       └── FocusEventRepository.java
 │   ├── note/
 │   │   ├── controller/
-│   │   │   └── NoteController.java               🆕 CRUD API (POST/PUT/DELETE/GET)
+│   │   │   └── NoteController.java
 │   │   ├── dto/
-│   │   │   ├── NoteCreateRequest.java            🆕
-│   │   │   ├── NoteUpdateRequest.java            🆕
-│   │   │   └── NoteResponse.java                 🆕
+│   │   │   ├── NoteCreateRequest.java
+│   │   │   ├── NoteUpdateRequest.java
+│   │   │   └── NoteResponse.java
 │   │   ├── entity/
 │   │   │   └── StudyNote.java
 │   │   ├── repository/
-│   │   │   └── StudyNoteRepository.java          ✏️ 커스텀 쿼리 메서드 추가
+│   │   │   └── StudyNoteRepository.java
 │   │   └── service/
-│   │       └── NoteService.java                  🆕 save/update/delete + embed 연동
+│   │       └── NoteService.java
 │   └── user/
 │       ├── entity/
 │       │   └── User.java
@@ -59,19 +58,19 @@ src/main/java/com/criticalflow/
 └── global/
     ├── ai/
     │   ├── advisor/
-    │   │   ├── QuestionTypeAdvisor.java          🆕 CallAroundAdvisor — TYPE 주입
-    │   │   └── QuestionTypePromptProvider.java   🆕 TYPE별 프롬프트 텍스트 관리
+    │   │   ├── QuestionTypeAdvisor.java          CallAdvisor 구현 — TYPE 프롬프트 주입
+    │   │   └── QuestionTypePromptProvider.java   TYPE별 프롬프트 텍스트 관리
     │   ├── rag/
     │   │   ├── FocusEventFormatter.java
-    │   │   ├── NoteEmbeddingService.java         ✏️ 전처리 + 메타데이터 추출 적용
-    │   │   ├── NoteMetadataExtractor.java        🆕 언어/헤더 자동 추출
-    │   │   ├── NotePreprocessor.java             🆕 코드 블록 → 식별자 변환
-    │   │   ├── RagContext.java                   ✏️ format()에 "[참고용 과거 노트]" 레이블 추가
-    │   │   └── RagRetrievalService.java          ✏️ excludeNoteId 파라미터 + BM25 병렬 검색 + 한국어 필터
+    │   │   ├── NoteEmbeddingService.java         원본 마크다운 그대로 임베딩 (전처리 미사용, #57)
+    │   │   ├── NoteMetadataExtractor.java        언어/헤더 자동 추출
+    │   │   ├── NotePreprocessor.java             ※ 파일 존재하나 NoteEmbeddingService에서 미사용 (#57)
+    │   │   ├── RagContext.java
+    │   │   └── RagRetrievalService.java          excludeNoteId + Dense/Sparse 하이브리드 검색 + RRF
     │   ├── router/
-    │   │   └── QuestionTypeRouter.java           🆕 규칙 필터 + LLM 분류 (GPT-4o-mini)
+    │   │   └── QuestionTypeRouter.java           규칙 필터(TYPE_E) + LLM 분류(gpt-4o)
     │   └── tutor/
-    │       ├── AiTutorService.java               ✏️ ChatClient 전환 + has_code 변수 바인딩
+    │       ├── AiTutorService.java
     │       ├── TutorRequest.java
     │       └── TutorResponse.java
     ├── auth/
@@ -88,43 +87,42 @@ src/main/java/com/criticalflow/
         └── controller/HealthController.java
 
 src/main/resources/
-├── application.yml                               ✏️ BM25 설정값 추가
+├── application.yml
 └── prompts/
-    ├── tutor-system.st                           ✏️ TYPE E/F 추가, {selected_question_type} 플레이스홀더
-    └── type-router.st                            🆕 LLM 질문 타입 분류 프롬프트
+    ├── tutor-system.st                           {selected_question_type} 플레이스홀더 포함
+    └── type-router.st                            LLM 질문 타입 분류 프롬프트
 ```
 
 ---
 
-## 고도화 후 엔티티 스키마 변경
+## 엔티티 스키마
 
-### ai_conversation (변경)
+### ai_conversation
 
-| 컬럼 | 타입 | 설명 | 변경 |
-|------|------|------|------|
-| conversation_id | BIGINT PK | | |
-| note_id | BIGINT | | |
-| user_id | BIGINT | | |
-| type | ENUM(QUESTION, QUIZ) | | |
-| question_type | VARCHAR(10) | TYPE_A ~ TYPE_F | 🆕 추가 |
-| created_at | DATETIME | | |
+| 컬럼 | 타입 | 설명 |
+|------|------|------|
+| conversation_id | BIGINT PK | |
+| note_id | BIGINT | |
+| user_id | BIGINT | |
+| type | ENUM(QUESTION, QUIZ) | |
+| question_type | VARCHAR(10) | TYPE_A ~ TYPE_F (라우팅 결정 결과 저장) |
+| created_at | DATETIME | |
 
-### ChromaDB Document 메타데이터 (변경)
+### ChromaDB Document 메타데이터
 
-| 필드 | 변경 전 | 변경 후 |
-|------|---------|---------|
-| note_id | ✅ | ✅ |
-| user_id | ✅ | ✅ |
-| session_id | ✅ | ✅ |
-| title | ✅ | ✅ |
-| created_at | ✅ | ✅ |
-| languages | ❌ | 🆕 "java,kotlin" |
-| headers | ❌ | 🆕 "스택,시간복잡도" |
-| type | ❌ | 🆕 "note" or "session_summary" |
+| 필드 | 값 예시 | 용도 |
+|------|--------|------|
+| `note_id` | `"42"` | 자기 참조 방지 필터 |
+| `user_id` | `"7"` | 사용자 격리 필터 |
+| `session_id` | `"15"` | RagContext 포맷 출력 |
+| `title` | `"HashMap 정리"` | RagContext 포맷 출력 |
+| `created_at` | `"2026-05-07T..."` | 향후 시간 기반 필터용 |
+| `languages` | `"java,kotlin"` | 향후 언어 기반 필터용 |
+| `headers` | `"스택,시간복잡도"` | 향후 헤더 기반 필터용 |
 
 ---
 
-## 고도화 후 데이터 흐름
+## 데이터 흐름
 
 ### 노트 저장 흐름
 
@@ -137,12 +135,13 @@ NoteController → NoteService.saveNote()
     ├── StudyNote DB 저장
     └── NoteEmbeddingService.embed(note)
             │
-            ├── NotePreprocessor.preprocessForEmbedding()
-            │       └── 코드 블록 → 식별자 변환
+            ├── vectorStore.delete("note-{noteId}")       ← 기존 벡터 먼저 삭제
             ├── NoteMetadataExtractor.extractLanguages()
             ├── NoteMetadataExtractor.extractHeaders()
-            └── ChromaDB.add(Document)
+            └── ChromaDB.add(Document)                    ← 원본 content 그대로 저장
 ```
+
+> NotePreprocessor는 파일이 존재하지만 #57 측정 결과(전처리 적용 시 Recall@4 40%로 하락)에 따라 호출을 제거했다.
 
 ### AI 튜터 응답 흐름
 
@@ -155,21 +154,20 @@ AiTutorService.respond()
     ├── RagRetrievalService.retrieve(noteContent, userId, excludeNoteId)
     │       │
     │       ├── [1] Dense 검색
-    │       │       VectorStore.similaritySearch(threshold=0.75, topK=6)
+    │       │       VectorStore.similaritySearch(threshold=0.55, topK=6)
     │       │       filterExpression: user_id == userId && note_id != excludeNoteId
     │       │
-    │       ├── [2] Sparse 검색 (BM25 방식)
+    │       ├── [2] Sparse 검색
     │       │       extractKeyTerms() → 한국어 1자↑ / 영어 4자↑ 키워드 추출
     │       │       VectorStore.similaritySearch(threshold=0.0, topK=10)
-    │       │       keywords.anyMatch(content::contains) → 키워드 1개 이상 포함 문서만 통과
+    │       │       keywords.anyMatch(content::contains) → 키워드 포함 문서만 통과
     │       │
     │       ├── [3] RRF 병합
     │       │       score = Σ 1/(60 + rank)  (양쪽 등장 문서는 점수 합산)
     │       │       → 상위 4개 선별
     │       │
-    │       ├── [4] 2차 키워드 오버랩 필터 (isTopicRelevant)
-    │       │       한국어 1자↑ / 영어 3자↑ 의미 키워드 중 20% 이상 일치해야 통과
-    │       │       목적: Dense 0.75 통과 노이즈 제거 + Sparse 1개 히트 저품질 문서 제거
+    │       ├── [4] 2차 키워드 필터 (isTopicRelevant)
+    │       │       한국어 2자↑ / 영어 4자↑ 의미 키워드 중 10% 이상 일치해야 통과
     │       │
     │       └── RagContext 반환
     │
@@ -180,11 +178,13 @@ AiTutorService.respond()
     └── ChatClient 호출 (Advisor 체인)
             │
             ▼
-        QuestionTypeAdvisor.aroundCall()
+        QuestionTypeAdvisor.adviseCall()
             │
             ├── QuestionTypeRouter.route(note, ragContext)
-            │       ├── [규칙] 코드 블록 있음? → TYPE_E 즉시 반환
-            │       └── [LLM] GPT-4o-mini few-shot 분류 → TYPE_A~F 결정
+            │       ├── [규칙] 코드 블록 있음? → TYPE_E 즉시 반환 (LLM 호출 없음)
+            │       └── [LLM] gpt-4o 분류 → TYPE_A~F 결정
+            │               ├── TYPE_C + RAG 없음 → TYPE_A 폴백
+            │               └── 매칭 실패 → TYPE_A 폴백 (기본값)
             │               └── AiConversation.questionType DB 저장
             │
             └── 선택된 TYPE 설명만 시스템 프롬프트에 주입
@@ -196,25 +196,24 @@ AiTutorService.respond()
 ### 세션 종료 흐름
 
 ```
-questionCount >= MAX_QUESTIONS (summaryMode)
+questionCount >= MAX_QUESTIONS (summaryMode = true)
     │
     ▼
-SessionSummaryService.summarizeAndEmbed(conversationId)
-    ├── AiMessage 전체 조회
-    ├── LLM 요약 생성: "[학습 주제] | [이해] | [불명확]"
-    └── ChromaDB.add(Document, type="session_summary")
+요약 응답 반환 후 이후 세션에서 질문 미생성
 ```
+
+> SessionSummaryService(대화 요약 임베딩)는 미구현 상태다. 실사용 데이터 축적 후 도입 검토.
 
 ---
 
-## 고도화 후 시스템 프롬프트 변수 바인딩
+## 시스템 프롬프트 변수 바인딩
 
 | 변수 | 소스 | 담당 코드 |
 |------|------|----------|
 | `{current_note}` | `StudyNote.content` | `AiTutorService` |
-| `{rag_context}` | ChromaDB (Dense+BM25) | `RagRetrievalService` → `RagContext.format()` |
+| `{rag_context}` | ChromaDB (Dense+Sparse+RRF) | `RagRetrievalService` → `RagContext.format()` |
 | `{focus_events}` | `FocusEvent` DB | `FocusEventFormatter` |
 | `{conversation_type}` | `AiConversation.type` | `AiTutorService` |
 | `{question_count}` | `AiMessage` 카운트 | `AiTutorService` |
-| `{has_code}` | 코드 블록 존재 여부 | `AiTutorService` 🆕 |
-| `{selected_question_type}` | 라우터 결정 TYPE | `QuestionTypeAdvisor` 🆕 |
+| `{has_code}` | 코드 블록 존재 여부 | `AiTutorService` |
+| `{selected_question_type}` | 라우터 결정 TYPE | `QuestionTypeAdvisor` |
