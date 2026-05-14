@@ -34,7 +34,7 @@ class RagRetrievalServiceTest {
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(service, "similarityThreshold", 0.75);
+        ReflectionTestUtils.setField(service, "similarityThreshold", 0.55);
         ReflectionTestUtils.setField(service, "maxResults", 4);
         ReflectionTestUtils.setField(service, "bm25MaxResults", 10);
     }
@@ -51,12 +51,12 @@ class RagRetrievalServiceTest {
     }
 
     /**
-     * Dense(threshold>=0.75)와 Sparse(threshold==0.0)를 분리해서 스텁.
+     * Dense(threshold>=0.55)와 Sparse(threshold==0.0)를 분리해서 스텁.
      */
     private void stubSearch(List<Document> denseResult, List<Document> sparseResult) {
         when(vectorStore.similaritySearch(any(SearchRequest.class))).thenAnswer(inv -> {
             SearchRequest req = inv.getArgument(0);
-            return req.getSimilarityThreshold() >= 0.75 ? denseResult : sparseResult;
+            return req.getSimilarityThreshold() >= 0.55 ? denseResult : sparseResult;
         });
     }
 
