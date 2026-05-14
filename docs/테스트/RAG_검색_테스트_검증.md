@@ -42,9 +42,9 @@
 | 다른 사용자 노트 격리 | 사용자 B 노트가 사용자 A 검색에서 나오는지 확인 | `user_id` 필터로 차단 확인 |
 | 한국어 키워드 필터 버그 | 1자 한국어 키워드가 2차 필터를 통과하는지 확인 | `>` 연산자로 인해 1자 키워드 제외되는 버그 발견 → `>=`로 수정 (commit `29f6bd9`) |
 
-**미확인 사항**:
-- 2차 필터(키워드 오버랩 20%)가 실제 노이즈를 얼마나 줄이는지 정량 측정하지 않음
-- `similarity-threshold: 0.75`가 최적값인지 다른 임계값(0.6, 0.8)과 비교하지 않음
+**완료된 사항** (#59, #60):
+- 2차 필터 노이즈 감소 효과 측정 완료 → 임계값 0.2에서 과도한 제거 확인, **0.1로 완화** (#59)
+- `similarity-threshold` 최적값 검증 완료 → 0.75 기준 Dense 평균 반환 0건 확인, **0.55로 변경** (#60)
 
 ---
 
@@ -95,20 +95,6 @@ private void stubSearch(List<Document> denseResult, List<Document> sparseResult)
 | 검색 결과 없을 때 기본 메시지 | `(No relevant past notes found.)` 확인 |
 | similarity 점수 포함 여부 | `similarity: 0.83` 형태로 포함 확인 |
 | 레이블 추가 효과 | 추가 전후로 AI가 RAG 결과를 현재 노트로 오해하는 빈도 감소 수동 확인 (정량 데이터 없음) |
-
----
-
-### 4.6 FocusEventFormatter
-
-**확인 방법**: 집중 이탈 이벤트를 DB에 직접 INSERT한 후 대화 시작 API 호출, 서버 로그로 포맷된 문자열 확인
-
-| 검증 시나리오 | 결과 |
-|-------------|------|
-| 최근 15분 내 이벤트 있음 | `[GAZE_OUT | 8s | alerted=false]` 형식 포맷 확인 |
-| 이벤트 없음 | `(No focus events in the last 15 minutes.)` 반환 확인 |
-| `lookback-minutes` 경계 밖 이벤트 | 조회 범위 밖 이벤트 미포함 확인 |
-
-**미확인 사항**: AI가 집중 이벤트 데이터를 실제로 활용해 질문 방향을 바꾸는지 일관되게 검증하지 않았다.
 
 ---
 
@@ -246,41 +232,6 @@ void isTopicRelevant_의미없는단어만있으면통과() {
   6. threshold=0.0 Sparse 검색이 의도한 후보 수(topK=10)를 반환하는지 확인
 ```
 
----
-
-### 5.5 FocusEventFormatter 단위 테스트
-
-**목표**: 이벤트 포맷팅과 시간 범위 필터링이 정확한지 검증
-
-```java
-@ExtendWith(MockitoExtension.class)
-class FocusEventFormatterTest {
-
-    @Mock FocusEventRepository repository;
-    @InjectMocks FocusEventFormatter formatter;
-
-    @Test
-    @DisplayName("이벤트 목록을 포맷된 문자열로 반환한다")
-    void format_이벤트있으면포맷된문자열반환() {
-        FocusEvent event = /* GAZE_OUT, 8초, alerted=false */;
-        when(repository.findBySessionIdAndDetectedAtAfterOrderByDetectedAtAsc(any(), any()))
-            .thenReturn(List.of(event));
-
-        String result = formatter.format(1L);
-        assertThat(result).isEqualTo("[GAZE_OUT | 8s | alerted=false]");
-    }
-
-    @Test
-    @DisplayName("이벤트가 없으면 기본 메시지를 반환한다")
-    void format_이벤트없으면기본메시지반환() {
-        when(repository.findBySessionIdAndDetectedAtAfterOrderByDetectedAtAsc(any(), any()))
-            .thenReturn(List.of());
-
-        assertThat(formatter.format(1L))
-            .contains("No focus events in the last");
-    }
-}
-```
 
 ---
 
@@ -341,10 +292,9 @@ class FocusEventFormatterTest {
 ```yaml
 # application.yml
 rag:
-  similarity-threshold: 0.75    # Dense 검색 유사도 임계값 (Sparse는 항상 0.0)
+  similarity-threshold: 0.55    # Dense 검색 유사도 임계값 (Sparse는 항상 0.0) — #60 측정 기반 0.75→0.55 변경
   max-results: 4                # 최종 반환 청크 수 (RRF 병합 후 적용)
   bm25-max-results: 10          # Sparse 검색 초기 후보 풀 크기
-  focus-lookback-minutes: 15    # 집중 이탈 이벤트 조회 범위 (분)
 ```
 
 | 설정값 | 영향 범위 | 조정 기준 |
@@ -352,7 +302,6 @@ rag:
 | `similarity-threshold` | Dense 검색 1차 필터 | 낮추면 관련성 낮은 문서 포함 위험, 높이면 검색 누락 증가 |
 | `max-results` | RRF 병합 후 최종 반환 수 | 많을수록 AI에게 더 많은 컨텍스트, System Prompt 길이 증가 |
 | `bm25-max-results` | Sparse 검색 후보 수 | 크게 잡을수록 키워드 히트 확률 높아지나 불필요한 후보도 증가 |
-| `focus-lookback-minutes` | FocusEventFormatter 조회 범위 | 짧으면 최근 이벤트만, 길면 오래된 이벤트도 포함 |
 
 **인프라 정보**:
 - ChromaDB 컬렉션: `criticalflow-notes`
