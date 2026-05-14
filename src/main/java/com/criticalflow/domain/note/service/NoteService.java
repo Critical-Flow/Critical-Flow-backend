@@ -6,11 +6,11 @@ import com.criticalflow.domain.note.dto.NoteUpdateRequest;
 import com.criticalflow.domain.note.entity.StudyNote;
 import com.criticalflow.domain.note.repository.StudyNoteRepository;
 import com.criticalflow.global.ai.rag.NoteEmbeddingService;
+import com.criticalflow.global.exception.DomainException;
+import com.criticalflow.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -82,10 +82,10 @@ public class NoteService {
 
     private StudyNote getOwnedNote(Long userId, Long noteId) {
         StudyNote note = noteRepository.findById(noteId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Note not found"));
+                .orElseThrow(() -> new DomainException(ErrorCode.NOTE_NOT_FOUND));
 
         if (!note.getUserId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+            throw new DomainException(ErrorCode.NOTE_ACCESS_DENIED);
         }
 
         return note;

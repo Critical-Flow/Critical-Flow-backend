@@ -13,6 +13,8 @@ import com.criticalflow.global.ai.rag.FocusEventFormatter;
 import com.criticalflow.global.ai.router.QuestionTypeRouter;
 import com.criticalflow.global.ai.rag.RagContext;
 import com.criticalflow.global.ai.rag.RagRetrievalService;
+import com.criticalflow.global.exception.DomainException;
+import com.criticalflow.global.exception.ErrorCode;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.client.ChatClient;
@@ -64,10 +66,10 @@ public class AiTutorService {
     @Transactional
     public TutorResponse generateFirstQuestion(Long conversationId) {
         AiConversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new IllegalArgumentException("Conversation not found: " + conversationId));
+                .orElseThrow(() -> new DomainException(ErrorCode.CONVERSATION_NOT_FOUND));
 
         StudyNote note = noteRepository.findById(conversation.getNoteId())
-                .orElseThrow(() -> new IllegalStateException("Note not found for conversation: " + conversationId));
+                .orElseThrow(() -> new DomainException(ErrorCode.CONVERSATION_NOTE_NOT_FOUND));
 
         RagContext ragContext = ragRetrievalService.retrieve(note.getContent(), note.getUserId(), note.getNoteId());
         String focusEvents = focusEventFormatter.format(note.getSessionId());
@@ -99,10 +101,10 @@ public class AiTutorService {
     @Transactional
     public TutorResponse respond(Long conversationId, String userMessage) {
         AiConversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new IllegalArgumentException("Conversation not found: " + conversationId));
+                .orElseThrow(() -> new DomainException(ErrorCode.CONVERSATION_NOT_FOUND));
 
         StudyNote note = noteRepository.findById(conversation.getNoteId())
-                .orElseThrow(() -> new IllegalStateException("Note not found for conversation: " + conversationId));
+                .orElseThrow(() -> new DomainException(ErrorCode.CONVERSATION_NOTE_NOT_FOUND));
 
         List<AiMessage> history = messageRepository.findByConversationIdOrderBySequenceAsc(conversationId);
 

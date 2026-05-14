@@ -8,6 +8,8 @@ import com.criticalflow.domain.conversation.dto.StartConversationRequest;
 import com.criticalflow.domain.conversation.service.ConversationService;
 import com.criticalflow.global.ai.tutor.AiTutorService;
 import com.criticalflow.global.ai.tutor.TutorResponse;
+import com.criticalflow.global.exception.DomainException;
+import com.criticalflow.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +39,9 @@ public class ConversationController {
     public ResponseEntity<TutorResponse> sendMessage(
             @PathVariable Long conversationId,
             @RequestBody SendMessageRequest request) {
+        if (request.userMessage() == null || request.userMessage().isBlank()) {
+            throw new DomainException(ErrorCode.MESSAGE_EMPTY);
+        }
         TutorResponse response = aiTutorService.respond(conversationId, request.userMessage());
         return ResponseEntity.ok(response);
     }
