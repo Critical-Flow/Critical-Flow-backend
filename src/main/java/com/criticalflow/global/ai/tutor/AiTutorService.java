@@ -34,10 +34,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AiTutorService {
 
-    private static final int MAX_QUESTIONS = 5;
-
     private static final Set<String> FILLER_WORDS = Set.of(
-            "아", "어", "음", "몰라", "모르겠어", "모름", ".", "..", "...", "idk", "?"
+            "아", "어", "음", "몰라", "모르겠어", "모름", "..", "...", "idk", "?"
     );
 
     private final ChatClient.Builder chatClientBuilder;
@@ -80,14 +78,13 @@ public class AiTutorService {
         conversation.updateQuestionType(questionType);
 
         String resolvedPrompt = resolvePrompt(note.getContent(), ragContext.format(), focusEvents,
-                conversation.getType().name(), 0, hasCodeBlock);
+                conversation.getType().name(), hasCodeBlock);
 
         String aiContent = chatClient.prompt()
                 .system(resolvedPrompt)
                 .advisors(spec -> spec
                         .param("note", note)
                         .param("ragContext", ragContext)
-                        .param("questionCount", 0)
                         .param("preSelectedType", questionType))
                 .call()
                 .content();
@@ -96,8 +93,6 @@ public class AiTutorService {
 
         return TutorResponse.builder()
                 .content(aiContent)
-                .summaryMode(false)
-                .questionCount(0)
                 .build();
     }
 
@@ -110,10 +105,9 @@ public class AiTutorService {
                 .orElseThrow(() -> new IllegalStateException("Note not found for conversation: " + conversationId));
 
         List<AiMessage> history = messageRepository.findByConversationIdOrderBySequenceAsc(conversationId);
-        long questionCount = countAiMessages(history);
 
         if (isMeaninglessInput(userMessage)) {
-            return reanchor(conversationId, userMessage, history, questionCount);
+            return reanchor(conversationId, userMessage, history);
         }
 
         persistMessage(conversationId, MessageRole.USER, userMessage, history.size() + 1);
@@ -123,7 +117,7 @@ public class AiTutorService {
         boolean hasCodeBlock = note.getContent().contains("```");
 
         String resolvedPrompt = resolvePrompt(note.getContent(), ragContext.format(), focusEvents,
-                conversation.getType().name(), questionCount, hasCodeBlock);
+                conversation.getType().name(), hasCodeBlock);
 
         List<Message> historyMessages = buildHistoryMessages(history);
 
@@ -133,8 +127,7 @@ public class AiTutorService {
                 .user(userMessage)
                 .advisors(spec -> spec
                         .param("note", note)
-                        .param("ragContext", ragContext)
-                        .param("questionCount", questionCount))
+                        .param("ragContext", ragContext))
                 .call()
                 .content();
 
@@ -142,8 +135,6 @@ public class AiTutorService {
 
         return TutorResponse.builder()
                 .content(aiContent)
-                .summaryMode(questionCount + 1 >= MAX_QUESTIONS)
-                .questionCount((int) questionCount + 1)
                 .build();
     }
 
@@ -156,8 +147,7 @@ public class AiTutorService {
         return FILLER_WORDS.contains(trimmed.toLowerCase());
     }
 
-    private TutorResponse reanchor(Long conversationId, String userMessage,
-                                   List<AiMessage> history, long questionCount) {
+    private TutorResponse reanchor(Long conversationId, String userMessage, List<AiMessage> history) {
         String lastAiQuestion = history.stream()
                 .filter(m -> m.getRole() == MessageRole.AI)
                 .reduce((first, second) -> second)
@@ -171,19 +161,16 @@ public class AiTutorService {
 
         return TutorResponse.builder()
                 .content(reanchorContent)
-                .summaryMode(false)
-                .questionCount((int) questionCount)
                 .build();
     }
 
     private String resolvePrompt(String currentNote, String ragContext, String focusEvents,
-                                  String conversationType, long questionCount, boolean hasCodeBlock) {
+                                  String conversationType, boolean hasCodeBlock) {
         return systemPromptTemplate
                 .replace("{current_note}", currentNote)
                 .replace("{rag_context}", ragContext)
                 .replace("{focus_events}", focusEvents)
                 .replace("{conversation_type}", conversationType)
-                .replace("{question_count}", questionCount + " / " + MAX_QUESTIONS)
                 .replace("{has_code}", String.valueOf(hasCodeBlock));
     }
 
@@ -195,10 +182,6 @@ public class AiTutorService {
                     : new AssistantMessage(msg.getContent()));
         }
         return messages;
-    }
-
-    private long countAiMessages(List<AiMessage> history) {
-        return history.stream().filter(m -> m.getRole() == MessageRole.AI).count();
     }
 
     private void persistMessage(Long conversationId, MessageRole role, String content, int sequence) {
