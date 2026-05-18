@@ -12,4 +12,8 @@ public interface AiConversationRepository extends JpaRepository<AiConversation, 
            "JOIN StudyNote n ON c.noteId = n.noteId " +
            "WHERE c.questionType IS NOT NULL")
     List<Object[]> findTrainingData();
+
+    List<Long> findConversationIdsByUserId(Long userId);
+
+    void deleteByUserId(Long userId);
 }

@@ -13,4 +13,6 @@ public interface StudyNoteRepository extends JpaRepository<StudyNote, Long> {
     List<StudyNote> findBySessionId(Long sessionId);
 
     Optional<StudyNote> findByNoteIdAndUserId(Long noteId, Long userId);
+
+    void deleteByUserId(Long userId);
 }
