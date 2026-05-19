@@ -32,7 +32,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getProfile(userId));
     }
 
-    @PutMapping("/me/profile")
+    @PatchMapping("/me/profile")
     public ResponseEntity<ProfileResponse> updateProfile(
             @AuthenticationPrincipal Long userId,
             @RequestBody ProfileUpdateRequest request

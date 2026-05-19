@@ -38,7 +38,7 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.getCategories(userId));
     }
 
-    @PutMapping("/{categoryId}")
+    @PatchMapping("/{categoryId}")
     public ResponseEntity<CategoryResponse> update(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long categoryId,
