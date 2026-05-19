@@ -2,6 +2,8 @@ package com.criticalflow.domain.focus.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,7 +12,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "focus_event")
 @Getter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class FocusEvent {
 
     @Id
