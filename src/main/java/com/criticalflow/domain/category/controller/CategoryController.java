@@ -4,6 +4,7 @@ import com.criticalflow.domain.category.dto.CategoryCreateRequest;
 import com.criticalflow.domain.category.dto.CategoryResponse;
 import com.criticalflow.domain.category.dto.CategoryUpdateRequest;
 import com.criticalflow.domain.category.service.CategoryService;
+import com.criticalflow.domain.note.dto.NoteResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -44,6 +45,14 @@ public class CategoryController {
             @RequestBody CategoryUpdateRequest request
     ) {
         return ResponseEntity.ok(categoryService.update(userId, categoryId, request));
+    }
+
+    @GetMapping("/{categoryId}/notes")
+    public ResponseEntity<List<NoteResponse>> getNotes(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long categoryId
+    ) {
+        return ResponseEntity.ok(categoryService.getNotesByCategory(userId, categoryId));
     }
 
     @DeleteMapping("/{categoryId}")
