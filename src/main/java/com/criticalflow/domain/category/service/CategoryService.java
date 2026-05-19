@@ -5,6 +5,8 @@ import com.criticalflow.domain.category.dto.CategoryResponse;
 import com.criticalflow.domain.category.dto.CategoryUpdateRequest;
 import com.criticalflow.domain.category.entity.Category;
 import com.criticalflow.domain.category.repository.CategoryRepository;
+import com.criticalflow.domain.note.dto.NoteResponse;
+import com.criticalflow.domain.note.repository.StudyNoteRepository;
 import com.criticalflow.global.exception.DomainException;
 import com.criticalflow.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import java.util.List;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final StudyNoteRepository studyNoteRepository;
 
     @Transactional
     public CategoryResponse create(Long userId, CategoryCreateRequest request) {
@@ -46,9 +49,19 @@ public class CategoryService {
         return CategoryResponse.from(category);
     }
 
+    @Transactional(readOnly = true)
+    public List<NoteResponse> getNotesByCategory(Long userId, Long categoryId) {
+        findOwned(userId, categoryId);
+        return studyNoteRepository.findByCategoryIdAndUserIdOrderByCreatedAtDesc(categoryId, userId)
+                .stream()
+                .map(NoteResponse::from)
+                .toList();
+    }
+
     @Transactional
     public void delete(Long userId, Long categoryId) {
         Category category = findOwned(userId, categoryId);
+        studyNoteRepository.clearCategoryId(categoryId);
         categoryRepository.delete(category);
     }
 
