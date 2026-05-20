@@ -18,7 +18,11 @@ public enum ErrorCode {
     MESSAGE_EMPTY(HttpStatus.BAD_REQUEST, "MESSAGE_EMPTY", "메시지 내용은 필수입니다."),
 
     // AI
-    AI_RESPONSE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AI_RESPONSE_FAILED", "AI 응답 생성에 실패했습니다.");
+    AI_RESPONSE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AI_RESPONSE_FAILED", "AI 응답 생성에 실패했습니다."),
+
+    // Auth
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "INVALID_REFRESH_TOKEN", "유효하지 않은 RefreshToken입니다."),
+    EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "EXPIRED_REFRESH_TOKEN", "만료된 RefreshToken입니다.");
 
     private final HttpStatus status;
     private final String code;
