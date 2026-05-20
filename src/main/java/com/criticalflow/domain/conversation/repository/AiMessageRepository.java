@@ -10,4 +10,6 @@ public interface AiMessageRepository extends JpaRepository<AiMessage, Long> {
     List<AiMessage> findByConversationIdOrderBySequenceAsc(Long conversationId);
 
     long countByConversationIdAndRole(Long conversationId, AiMessage.MessageRole role);
+
+    void deleteByConversationIdIn(List<Long> conversationIds);
 }
