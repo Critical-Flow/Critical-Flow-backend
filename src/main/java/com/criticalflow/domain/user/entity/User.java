@@ -38,7 +38,7 @@ public class User {
     private LocalDateTime createdAt;
 
     public void update(String name, String affiliation) {
-        this.name = name;
-        this.affiliation = affiliation;
+        if (name != null) this.name = name;
+        if (affiliation != null) this.affiliation = affiliation;
     }
 }

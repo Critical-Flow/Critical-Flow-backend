@@ -35,7 +35,7 @@ public class Category {
     private LocalDateTime createdAt;
 
     public void update(String title, String description) {
-        this.title = title;
-        this.description = description;
+        if (title != null) this.title = title;
+        if (description != null) this.description = description;
     }
 }
