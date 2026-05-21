@@ -13,6 +13,8 @@ public interface FocusEventRepository extends JpaRepository<FocusEvent, Long> {
     List<FocusEvent> findBySessionIdAndDetectedAtAfterOrderByDetectedAtAsc(
             Long sessionId, LocalDateTime since);
 
+    List<FocusEvent> findBySessionIdOrderByDetectedAtAsc(Long sessionId);
+
     @Query("SELECT COALESCE(SUM(e.durationSec), 0) FROM FocusEvent e WHERE e.sessionId = :sessionId")
     int sumDurationSecBySessionId(@Param("sessionId") Long sessionId);
 }
