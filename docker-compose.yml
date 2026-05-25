@@ -54,7 +54,7 @@ services:
 
   # ── ChromaDB 벡터 스토어 ──────────────────────────────────────
   chroma:
-    image: chromadb/chroma:latest
+    image: chromadb/chroma:0.5.23
     platform: linux/amd64
     container_name: criticalflow-chroma
     volumes:
