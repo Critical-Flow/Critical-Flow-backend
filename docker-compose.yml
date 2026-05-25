@@ -65,12 +65,14 @@ services:
 
   # ── ChromaDB 컬렉션 초기화 (앱 시작 전 1회 실행) ──────────────
   chroma-init:
-    image: curlimages/curl:latest
+    image: alpine:latest
     container_name: criticalflow-chroma-init
     depends_on:
       - chroma
-    entrypoint: ["sh", "-c"]
-    command: "sleep 5 && curl -sf -X POST http://chroma:8000/api/v1/collections -H 'Content-Type: application/json' -d '{\"name\": \"criticalflow-notes\"}'; exit 0"
+    command:
+      - /bin/sh
+      - -c
+      - "sleep 8 && wget -q -O- --post-data='{\"name\":\"criticalflow-notes\"}' --header='Content-Type: application/json' http://chroma:8000/api/v1/collections; exit 0"
     networks:
       - criticalflow-net
     restart: "no"
