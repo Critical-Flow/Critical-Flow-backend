@@ -25,8 +25,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      chroma:
-        condition: service_started
+      chroma-init:
+        condition: service_completed_successfully
     restart: always
     networks:
       - criticalflow-net
@@ -58,10 +58,25 @@ services:
     platform: linux/amd64
     container_name: criticalflow-chroma
     volumes:
-      - criticalflow-chroma-data:/chroma/chroma
+      - criticalflow-chroma-data:/data
     restart: always
     networks:
       - criticalflow-net
+
+  # ── ChromaDB 컬렉션 초기화 (앱 시작 전 1회 실행) ──────────────
+  chroma-init:
+    image: curlimages/curl:latest
+    container_name: criticalflow-chroma-init
+    depends_on:
+      - chroma
+    command: >-
+      sh -c "sleep 5 &&
+      curl -sf -X POST http://chroma:8000/api/v1/collections
+      -H 'Content-Type: application/json'
+      -d '{\"name\": \"criticalflow-notes\"}'; exit 0"
+    networks:
+      - criticalflow-net
+    restart: "no"
 
 # ── 볼륨 (데이터 영속성) ─────────────────────────────────────────
 volumes:
