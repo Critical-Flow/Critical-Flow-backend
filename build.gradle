@@ -61,4 +61,10 @@ dependencies {
 
 test {
     useJUnitPlatform()
+
+    // CI 환경(GitHub Actions)에서는 외부 API 의존 통합 테스트 제외
+    if (System.getenv('CI')) {
+        exclude '**/NotePreprocessorEmbeddingQualityTest*'
+        exclude '**/RagRetrievalServiceIntegrationTest*'
+    }
 }
