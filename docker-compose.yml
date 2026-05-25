@@ -69,11 +69,8 @@ services:
     container_name: criticalflow-chroma-init
     depends_on:
       - chroma
-    command: >-
-      sh -c "sleep 5 &&
-      curl -sf -X POST http://chroma:8000/api/v1/collections
-      -H 'Content-Type: application/json'
-      -d '{\"name\": \"criticalflow-notes\"}'; exit 0"
+    entrypoint: ["sh", "-c"]
+    command: "sleep 5 && curl -sf -X POST http://chroma:8000/api/v1/collections -H 'Content-Type: application/json' -d '{\"name\": \"criticalflow-notes\"}'; exit 0"
     networks:
       - criticalflow-net
     restart: "no"
