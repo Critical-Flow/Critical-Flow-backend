@@ -1,9 +1,9 @@
 name: CI/CD 자동 배포
 
-# main 브랜치에 push될 때만 실행
+# main, develop 브랜치에 push될 때 실행
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
   # ── Job 1: 빌드 & Docker 이미지 push ──────────────────────────
