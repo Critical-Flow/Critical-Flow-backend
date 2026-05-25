@@ -72,13 +72,7 @@ services:
     command:
       - /bin/sh
       - -c
-      - >
-        apk add --no-cache curl &&
-        sleep 8 &&
-        curl -sf -X POST http://chroma:8000/api/v1/collections
-        -H 'Content-Type: application/json'
-        -d '{"name": "criticalflow-notes"}';
-        exit 0
+      - "sleep 8 && wget -q -O- --post-data='{\"name\":\"criticalflow-notes\"}' --header='Content-Type: application/json' http://chroma:8000/api/v1/collections; exit 0"
     networks:
       - criticalflow-net
     restart: "no"
