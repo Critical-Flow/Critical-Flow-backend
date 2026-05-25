@@ -42,14 +42,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: 소문자 이미지 이름 설정
+        run: echo "IMAGE_NAME=ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/critical-flow-backend" >> $GITHUB_ENV
+
       - name: Docker 이미지 빌드 및 GHCR Push
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner | lower }}/critical-flow-backend:latest
-            ghcr.io/${{ github.repository_owner | lower }}/critical-flow-backend:sha-${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
 
   # ── Job 2: EC2 배포 (Job 1 성공 후 실행) ──────────────────────
   deploy:
