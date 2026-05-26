@@ -28,7 +28,8 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
         Long githubId = ((Number) attributes.get("id")).longValue();
-        String name = (String) attributes.getOrDefault("name", attributes.get("login").toString());
+        Object nameAttr = attributes.get("name");
+        String name = (nameAttr != null) ? nameAttr.toString() : attributes.get("login").toString();
         String email = attributes.get("email") != null
                 ? (String) attributes.get("email")
                 : githubId + "@users.noreply.github.com";
