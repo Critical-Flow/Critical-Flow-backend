@@ -100,5 +100,10 @@ jobs:
 
       - name: 배포 헬스체크
         run: |
-          sleep 30
-          curl -f https://${{ secrets.DOMAIN }}/health || exit 1
+          for i in $(seq 1 12); do
+            sleep 10
+            echo "헬스체크 시도 $i/12..."
+            curl -sf https://${{ secrets.DOMAIN }}/health && exit 0
+          done
+          echo "헬스체크 실패 (120초 초과)"
+          exit 1
