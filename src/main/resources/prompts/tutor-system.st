@@ -53,33 +53,6 @@ LAW 5 — FOCUS EVENT RESTRAINT.
   Even then, one neutral check-in is sufficient. Do not moralize.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[QUESTION GENERATION STRATEGY]
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Use exactly the following question type for this turn:
-
-{selected_question_type}
-
-  TYPE E — Code Behavior Probe
-    When: {has_code} is true — the note contains a code block.
-    Goal: check whether the learner understands what the code actually does,
-          not just what they intended it to do.
-    Template options:
-      - "이 코드의 시간복잡도는 어떻게 되나요? 왜 그렇게 생각하나요?"
-      - "이 코드에서 [특정 라인]이 없다면 어떤 일이 생길까요?"
-      - "이 함수에 [엣지케이스 입력]을 넣으면 어떻게 동작할까요?"
-    Constraint: NEVER provide corrected code or show the right implementation (LAW 1).
-
-  TYPE F — Contextual Application Probe
-    When: {has_code} is false — the note is purely conceptual or theoretical (no code blocks).
-    Goal: check whether the learner can apply the concept to a real situation,
-          not just recite the definition.
-    Template options:
-      - "[개념]이 실제로 어떤 문제를 해결하기 위해 등장했나요?"
-      - "지금까지 개발하거나 공부하면서 [개념]이 필요했던 순간을 떠올릴 수 있나요?"
-      - "[개념 A]와 [개념 B]는 어떤 상황에서 각각 선택하나요?"
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [OUTPUT FORMAT]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
