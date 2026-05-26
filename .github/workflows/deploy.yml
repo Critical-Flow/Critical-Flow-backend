@@ -79,8 +79,8 @@ jobs:
             JWT_EXPIRATION=3600000
             JWT_REFRESH_EXPIRATION=1209600000
             OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-            GITHUB_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}
-            GITHUB_CLIENT_SECRET=${{ secrets.GH_CLIENT_SECRET }}
+            GH_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}
+            GH_CLIENT_SECRET=${{ secrets.GH_CLIENT_SECRET }}
             CHROMA_HOST=http://chroma
             CHROMA_PORT=8000
             FRONTEND_CALLBACK_URL=${{ secrets.FRONTEND_CALLBACK_URL }}
