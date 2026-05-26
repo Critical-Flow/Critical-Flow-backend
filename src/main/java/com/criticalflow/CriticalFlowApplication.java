@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class CriticalFlowApplication {
 
-    // CI/CD 파이프라인 동작 확인용 주석
+    // CI/CD 배포 테스트
     public static void main(String[] args) {
         SpringApplication.run(CriticalFlowApplication.class, args);
     }
