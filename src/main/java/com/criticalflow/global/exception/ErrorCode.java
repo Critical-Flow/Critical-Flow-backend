@@ -32,7 +32,18 @@ public enum ErrorCode {
 
     // Session
     SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "SESSION_NOT_FOUND", "학습 세션을 찾을 수 없습니다."),
-    SESSION_ALREADY_ENDED(HttpStatus.BAD_REQUEST, "SESSION_ALREADY_ENDED", "이미 종료된 세션입니다.");
+    SESSION_ALREADY_ENDED(HttpStatus.BAD_REQUEST, "SESSION_ALREADY_ENDED", "이미 종료된 세션입니다."),
+
+    // FocusEvent
+    FOCUS_EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "FOCUS_EVENT_NOT_FOUND", "집중 이벤트를 찾을 수 없습니다."),
+
+    // 공통 요청 오류
+    MISSING_REQUIRED_PARAMETER(HttpStatus.BAD_REQUEST, "MISSING_REQUIRED_PARAMETER", "필수 요청 파라미터가 누락되었습니다."),
+    INVALID_REQUEST_BODY(HttpStatus.BAD_REQUEST, "INVALID_REQUEST_BODY", "요청 본문이 올바르지 않습니다."),
+    UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "UNSUPPORTED_MEDIA_TYPE", "지원하지 않는 Content-Type입니다."),
+
+    // Auth 공통
+    INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "INVALID_ACCESS_TOKEN", "유효하지 않은 AccessToken입니다.");
 
     private final HttpStatus status;
     private final String code;

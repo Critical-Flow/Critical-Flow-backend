@@ -24,6 +24,13 @@ public class NoteService {
 
     @Transactional
     public NoteResponse saveNote(Long userId, NoteCreateRequest request) {
+        if (request.title() == null || request.title().isBlank()) {
+            throw new DomainException(ErrorCode.NOTE_TITLE_REQUIRED);
+        }
+        if (request.content() == null || request.content().isBlank()) {
+            throw new DomainException(ErrorCode.NOTE_CONTENT_REQUIRED);
+        }
+
         LocalDateTime now = LocalDateTime.now();
         StudyNote note = StudyNote.builder()
                 .userId(userId)
@@ -43,6 +50,13 @@ public class NoteService {
 
     @Transactional
     public NoteResponse updateNote(Long userId, Long noteId, NoteUpdateRequest request) {
+        if (request.title() == null || request.title().isBlank()) {
+            throw new DomainException(ErrorCode.NOTE_TITLE_REQUIRED);
+        }
+        if (request.content() == null || request.content().isBlank()) {
+            throw new DomainException(ErrorCode.NOTE_CONTENT_REQUIRED);
+        }
+
         StudyNote note = getOwnedNote(userId, noteId);
 
         note.update(request.title(), request.content(), request.categoryId());
