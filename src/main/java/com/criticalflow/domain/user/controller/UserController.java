@@ -4,7 +4,11 @@ import com.criticalflow.domain.user.dto.ProfileResponse;
 import com.criticalflow.domain.user.dto.ProfileUpdateRequest;
 import com.criticalflow.domain.user.dto.UserInfoResponse;
 import com.criticalflow.domain.user.service.UserService;
+import com.criticalflow.global.exception.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -29,8 +33,12 @@ public class UserController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
-            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료"),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}"))),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"USER_NOT_FOUND\",\"message\":\"사용자를 찾을 수 없습니다.\"}")))
     })
     @GetMapping("/me")
     public ResponseEntity<UserInfoResponse> getUserInfo(@AuthenticationPrincipal Long userId) {
@@ -44,8 +52,12 @@ public class UserController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "회원 탈퇴 성공"),
-            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료"),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}"))),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"USER_NOT_FOUND\",\"message\":\"사용자를 찾을 수 없습니다.\"}")))
     })
     @DeleteMapping("/me")
     public ResponseEntity<Void> withdraw(@AuthenticationPrincipal Long userId) {
@@ -60,8 +72,12 @@ public class UserController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
-            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료"),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}"))),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"USER_NOT_FOUND\",\"message\":\"사용자를 찾을 수 없습니다.\"}")))
     })
     @GetMapping("/me/profile")
     public ResponseEntity<ProfileResponse> getProfile(@AuthenticationPrincipal Long userId) {
@@ -75,8 +91,12 @@ public class UserController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "수정 성공"),
-            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료"),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}"))),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"USER_NOT_FOUND\",\"message\":\"사용자를 찾을 수 없습니다.\"}")))
     })
     @PatchMapping("/me/profile")
     public ResponseEntity<ProfileResponse> updateProfile(

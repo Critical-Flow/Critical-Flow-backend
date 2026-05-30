@@ -5,8 +5,12 @@ import com.criticalflow.domain.category.dto.CategoryResponse;
 import com.criticalflow.domain.category.dto.CategoryUpdateRequest;
 import com.criticalflow.domain.category.service.CategoryService;
 import com.criticalflow.domain.note.dto.NoteResponse;
+import com.criticalflow.global.exception.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -34,8 +38,12 @@ public class CategoryController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "카테고리 생성 성공"),
-            @ApiResponse(responseCode = "400", description = "필수 필드(title) 누락"),
-            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료")
+            @ApiResponse(responseCode = "400", description = "필수 필드(title) 누락",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_REQUEST_BODY\",\"message\":\"요청 본문이 올바르지 않습니다.\"}"))),
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}")))
     })
     @PostMapping
     public ResponseEntity<CategoryResponse> create(
@@ -55,7 +63,9 @@ public class CategoryController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
-            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료")
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}")))
     })
     @GetMapping
     public ResponseEntity<List<CategoryResponse>> getCategories(
@@ -71,8 +81,12 @@ public class CategoryController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "수정 성공"),
-            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료"),
-            @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음 (본인 소유 아닌 경우 포함)")
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}"))),
+            @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"CATEGORY_NOT_FOUND\",\"message\":\"카테고리를 찾을 수 없습니다.\"}")))
     })
     @PatchMapping("/{categoryId}")
     public ResponseEntity<CategoryResponse> update(
@@ -90,8 +104,12 @@ public class CategoryController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
-            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료"),
-            @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음 (본인 소유 아닌 경우 포함)")
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}"))),
+            @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"CATEGORY_NOT_FOUND\",\"message\":\"카테고리를 찾을 수 없습니다.\"}")))
     })
     @GetMapping("/{categoryId}/notes")
     public ResponseEntity<List<NoteResponse>> getNotes(
@@ -108,8 +126,12 @@ public class CategoryController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "삭제 성공"),
-            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료"),
-            @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음 (본인 소유 아닌 경우 포함)")
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}"))),
+            @ApiResponse(responseCode = "404", description = "카테고리를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"CATEGORY_NOT_FOUND\",\"message\":\"카테고리를 찾을 수 없습니다.\"}")))
     })
     @DeleteMapping("/{categoryId}")
     public ResponseEntity<Void> delete(
