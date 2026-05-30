@@ -1,7 +1,11 @@
 package com.criticalflow.domain.auth.controller;
 
 import com.criticalflow.domain.auth.service.AuthService;
+import com.criticalflow.global.exception.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -32,7 +36,9 @@ public class AuthController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "로그아웃 성공"),
-            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료")
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}")))
     })
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
@@ -49,7 +55,9 @@ public class AuthController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "AccessToken 재발급 성공"),
-            @ApiResponse(responseCode = "401", description = "RefreshToken 쿠키 없음, 유효하지 않음 또는 만료됨")
+            @ApiResponse(responseCode = "401", description = "RefreshToken 없음, 유효하지 않음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_REFRESH_TOKEN\",\"message\":\"유효하지 않은 RefreshToken입니다.\"}")))
     })
     @PostMapping("/reissue")
     public ResponseEntity<Map<String, String>> reissue(

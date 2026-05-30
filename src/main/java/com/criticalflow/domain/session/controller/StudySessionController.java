@@ -2,8 +2,12 @@ package com.criticalflow.domain.session.controller;
 
 import com.criticalflow.domain.session.dto.SessionResponse;
 import com.criticalflow.domain.session.service.StudySessionService;
+import com.criticalflow.global.exception.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -30,7 +34,9 @@ public class StudySessionController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "세션 시작 성공"),
-            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료")
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}")))
     })
     @PostMapping
     public ResponseEntity<SessionResponse> startSession(
@@ -50,9 +56,15 @@ public class StudySessionController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "세션 종료 성공"),
-            @ApiResponse(responseCode = "400", description = "이미 종료된 세션"),
-            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료"),
-            @ApiResponse(responseCode = "404", description = "세션을 찾을 수 없음 (본인 소유 아닌 경우 포함)")
+            @ApiResponse(responseCode = "400", description = "이미 종료된 세션",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"SESSION_ALREADY_ENDED\",\"message\":\"이미 종료된 세션입니다.\"}"))),
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}"))),
+            @ApiResponse(responseCode = "404", description = "세션을 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"SESSION_NOT_FOUND\",\"message\":\"학습 세션을 찾을 수 없습니다.\"}")))
     })
     @PostMapping("/{sessionId}/end")
     public ResponseEntity<SessionResponse> endSession(

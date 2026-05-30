@@ -4,8 +4,12 @@ import com.criticalflow.domain.note.dto.NoteCreateRequest;
 import com.criticalflow.domain.note.dto.NoteResponse;
 import com.criticalflow.domain.note.dto.NoteUpdateRequest;
 import com.criticalflow.domain.note.service.NoteService;
+import com.criticalflow.global.exception.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,8 +31,12 @@ public class NoteController {
     @Operation(summary = "노트 생성", description = "사용자의 학습 세션에 새 노트를 저장합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "노트 생성 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 파라미터"),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
+            @ApiResponse(responseCode = "400", description = "제목/내용 누락 또는 필수 파라미터 오류",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"NOTE_TITLE_REQUIRED\",\"message\":\"노트 제목은 필수입니다.\"}"))),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"USER_NOT_FOUND\",\"message\":\"사용자를 찾을 수 없습니다.\"}")))
     })
     @PostMapping
     public ResponseEntity<NoteResponse> create(
@@ -41,8 +49,15 @@ public class NoteController {
     @Operation(summary = "노트 수정", description = "제목, 내용, 카테고리를 수정합니다. 전달한 필드만 반영됩니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "노트 수정 성공"),
-            @ApiResponse(responseCode = "403", description = "다른 사용자의 노트에 접근"),
-            @ApiResponse(responseCode = "404", description = "노트를 찾을 수 없음")
+            @ApiResponse(responseCode = "400", description = "제목/내용 누락",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"NOTE_TITLE_REQUIRED\",\"message\":\"노트 제목은 필수입니다.\"}"))),
+            @ApiResponse(responseCode = "403", description = "다른 사용자의 노트에 접근",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"NOTE_ACCESS_DENIED\",\"message\":\"해당 노트에 대한 접근 권한이 없습니다.\"}"))),
+            @ApiResponse(responseCode = "404", description = "노트를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"NOTE_NOT_FOUND\",\"message\":\"노트를 찾을 수 없습니다.\"}")))
     })
     @PutMapping("/{noteId}")
     public ResponseEntity<NoteResponse> update(
@@ -55,8 +70,12 @@ public class NoteController {
     @Operation(summary = "노트 삭제", description = "노트를 삭제합니다. 본인 소유 노트만 삭제할 수 있습니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "노트 삭제 성공"),
-            @ApiResponse(responseCode = "403", description = "다른 사용자의 노트에 접근"),
-            @ApiResponse(responseCode = "404", description = "노트를 찾을 수 없음")
+            @ApiResponse(responseCode = "403", description = "다른 사용자의 노트에 접근",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"NOTE_ACCESS_DENIED\",\"message\":\"해당 노트에 대한 접근 권한이 없습니다.\"}"))),
+            @ApiResponse(responseCode = "404", description = "노트를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"NOTE_NOT_FOUND\",\"message\":\"노트를 찾을 수 없습니다.\"}")))
     })
     @DeleteMapping("/{noteId}")
     public ResponseEntity<Void> delete(
@@ -69,7 +88,9 @@ public class NoteController {
     @Operation(summary = "노트 목록 조회", description = "사용자의 전체 노트 목록을 반환합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
-            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"USER_NOT_FOUND\",\"message\":\"사용자를 찾을 수 없습니다.\"}")))
     })
     @GetMapping
     public ResponseEntity<List<NoteResponse>> getAll(
@@ -80,8 +101,12 @@ public class NoteController {
     @Operation(summary = "노트 단건 조회", description = "노트 ID로 특정 노트를 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
-            @ApiResponse(responseCode = "403", description = "다른 사용자의 노트에 접근"),
-            @ApiResponse(responseCode = "404", description = "노트를 찾을 수 없음")
+            @ApiResponse(responseCode = "403", description = "다른 사용자의 노트에 접근",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"NOTE_ACCESS_DENIED\",\"message\":\"해당 노트에 대한 접근 권한이 없습니다.\"}"))),
+            @ApiResponse(responseCode = "404", description = "노트를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"NOTE_NOT_FOUND\",\"message\":\"노트를 찾을 수 없습니다.\"}")))
     })
     @GetMapping("/{noteId}")
     public ResponseEntity<NoteResponse> getOne(
