@@ -28,9 +28,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     // ── Spring MVC 요청 파라미터 오류 ──────────────────────────────
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<ErrorResponse> handleMissingParam(MissingServletRequestParameterException e) {
-        String message = "필수 파라미터 '" + e.getParameterName() + "'가 누락되었습니다.";
+    @Override
+    protected ResponseEntity<Object> handleMissingServletRequestParameter(
+            MissingServletRequestParameterException ex, HttpHeaders headers,
+            HttpStatusCode status, WebRequest request) {
+        String message = "필수 파라미터 '" + ex.getParameterName() + "'가 누락되었습니다.";
         return ResponseEntity.badRequest()
                 .body(new ErrorResponse(ErrorCode.MISSING_REQUIRED_PARAMETER.getCode(), message));
     }
