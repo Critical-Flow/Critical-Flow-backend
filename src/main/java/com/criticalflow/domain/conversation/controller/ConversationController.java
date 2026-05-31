@@ -50,8 +50,10 @@ public class ConversationController {
                             examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}")))
     })
     @GetMapping
-    public ResponseEntity<List<Long>> getConversationIds(
             @AuthenticationPrincipal Long userId) {
+        if (userId == null) {
+            throw new DomainException(ErrorCode.INVALID_ACCESS_TOKEN);
+        }
         return ResponseEntity.ok(conversationService.getConversationIds(userId));
     }
 
