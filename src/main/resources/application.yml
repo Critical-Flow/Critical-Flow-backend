@@ -67,3 +67,7 @@ jwt:
 
 frontend:
   callback-url: ${FRONTEND_CALLBACK_URL:http://localhost:5173/oauth/callback}
+
+python:
+  vision:
+    url: ${PYTHON_VISION_URL:http://localhost:5000}

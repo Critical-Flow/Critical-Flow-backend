@@ -37,9 +37,30 @@ public class StudySession {
     @Column(name = "total_focus_minutes")
     private Integer totalFocusMinutes;
 
-    public void end(LocalDateTime endTime, int totalStudyMinutes, int totalFocusMinutes) {
+    @Column(name = "drowsy_count")
+    private Integer drowsyCount;
+
+    @Column(name = "absent_count")
+    private Integer absentCount;
+
+    @Column(name = "drowsy_seconds")
+    private Integer drowsySeconds;
+
+    @Column(name = "absent_seconds")
+    private Integer absentSeconds;
+
+    public void end(LocalDateTime endTime) {
         this.endTime = endTime;
-        this.totalStudyMinutes = totalStudyMinutes;
-        this.totalFocusMinutes = totalFocusMinutes;
+    }
+
+    public void applyVisionResult(int totalStudySeconds, int goodFocusSeconds,
+                                   int drowsySeconds, int absentSeconds,
+                                   int drowsyCount, int absentCount) {
+        this.totalStudyMinutes = totalStudySeconds / 60;
+        this.totalFocusMinutes = goodFocusSeconds / 60;
+        this.drowsySeconds = drowsySeconds;
+        this.absentSeconds = absentSeconds;
+        this.drowsyCount = drowsyCount;
+        this.absentCount = absentCount;
     }
 }
