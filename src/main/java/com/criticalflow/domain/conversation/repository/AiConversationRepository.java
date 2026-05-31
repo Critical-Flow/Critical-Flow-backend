@@ -15,5 +15,7 @@ public interface AiConversationRepository extends JpaRepository<AiConversation, 
 
     List<Long> findConversationIdsByUserId(Long userId);
 
+    List<AiConversation> findByUserIdOrderByCreatedAtDesc(Long userId);
+
     void deleteByUserId(Long userId);
 }

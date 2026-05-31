@@ -2,6 +2,7 @@ package com.criticalflow.domain.conversation.controller;
 
 import com.criticalflow.domain.conversation.entity.AiConversation;
 import com.criticalflow.domain.conversation.dto.ConversationResponse;
+import com.criticalflow.domain.conversation.dto.ConversationSummaryResponse;
 import com.criticalflow.domain.conversation.dto.MessageResponse;
 import com.criticalflow.domain.conversation.dto.SendMessageRequest;
 import com.criticalflow.domain.conversation.dto.StartConversationRequest;
@@ -22,6 +23,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,6 +36,18 @@ public class ConversationController {
 
     private final ConversationService conversationService;
     private final AiTutorService aiTutorService;
+
+    @Operation(summary = "대화 목록 조회", description = "현재 로그인한 유저의 전체 대화 목록을 최신순으로 반환합니다.")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @GetMapping
+    public ResponseEntity<List<ConversationSummaryResponse>> getConversations(
+            @AuthenticationPrincipal Long userId) {
+        List<ConversationSummaryResponse> conversations = conversationService.getConversations(userId)
+                .stream()
+                .map(ConversationSummaryResponse::from)
+                .toList();
+        return ResponseEntity.ok(conversations);
+    }
 
     @Operation(summary = "대화 시작", description = "노트를 기반으로 AI 튜터 대화를 시작합니다. 첫 질문이 자동 생성됩니다.")
     @ApiResponses({
