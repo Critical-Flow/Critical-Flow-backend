@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,24 @@ public class ConversationController {
 
     private final ConversationService conversationService;
     private final AiTutorService aiTutorService;
+
+    @Operation(
+            summary = "대화 목록 조회",
+            description = "현재 로그인한 유저가 보유한 채팅방 ID 목록을 반환합니다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(schema = @Schema(type = "array", example = "[1, 2, 3]"))),
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}")))
+    })
+    @GetMapping
+    public ResponseEntity<List<Long>> getConversationIds(
+            @Parameter(description = "사용자 ID", required = true) @RequestParam Long userId) {
+        return ResponseEntity.ok(conversationService.getConversationIds(userId));
+    }
 
     @Operation(summary = "대화 시작", description = "노트를 기반으로 AI 튜터 대화를 시작합니다. 첫 질문이 자동 생성됩니다.")
     @ApiResponses({

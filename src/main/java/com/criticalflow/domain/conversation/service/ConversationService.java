@@ -32,6 +32,11 @@ public class ConversationService {
     }
 
     @Transactional(readOnly = true)
+    public List<Long> getConversationIds(Long userId) {
+        return conversationRepository.findConversationIdsByUserId(userId);
+    }
+
+    @Transactional(readOnly = true)
     public List<AiMessage> getMessages(Long conversationId) {
         return messageRepository.findByConversationIdOrderBySequenceAsc(conversationId);
     }
