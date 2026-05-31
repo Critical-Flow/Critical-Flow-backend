@@ -11,5 +11,7 @@ public interface AiMessageRepository extends JpaRepository<AiMessage, Long> {
 
     long countByConversationIdAndRole(Long conversationId, AiMessage.MessageRole role);
 
+    void deleteByConversationId(Long conversationId);
+
     void deleteByConversationIdIn(List<Long> conversationIds);
 }

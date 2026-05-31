@@ -5,6 +5,8 @@ import com.criticalflow.domain.conversation.entity.AiMessage;
 import com.criticalflow.domain.conversation.entity.QuestionType;
 import com.criticalflow.domain.conversation.repository.AiConversationRepository;
 import com.criticalflow.domain.conversation.repository.AiMessageRepository;
+import com.criticalflow.global.exception.DomainException;
+import com.criticalflow.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,17 @@ public class ConversationService {
                 .questionType(questionType)
                 .createdAt(LocalDateTime.now())
                 .build());
+    }
+
+    @Transactional
+    public void deleteConversation(Long userId, Long conversationId) {
+        AiConversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new DomainException(ErrorCode.CONVERSATION_NOT_FOUND));
+        if (!conversation.getUserId().equals(userId)) {
+            throw new DomainException(ErrorCode.CONVERSATION_NOT_FOUND);
+        }
+        messageRepository.deleteByConversationId(conversationId);
+        conversationRepository.delete(conversation);
     }
 
     @Transactional(readOnly = true)

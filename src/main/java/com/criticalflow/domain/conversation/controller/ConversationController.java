@@ -98,6 +98,28 @@ public class ConversationController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(
+            summary = "대화 삭제",
+            description = "특정 채팅방과 해당 채팅방의 모든 메시지를 삭제합니다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "삭제 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}"))),
+            @ApiResponse(responseCode = "404", description = "대화를 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"CONVERSATION_NOT_FOUND\",\"message\":\"대화를 찾을 수 없습니다.\"}")))
+    })
+    @DeleteMapping("/{conversationId}")
+    public ResponseEntity<Void> deleteConversation(
+            @Parameter(description = "사용자 ID", required = true) @RequestParam Long userId,
+            @Parameter(description = "대화 ID", required = true) @PathVariable Long conversationId) {
+        conversationService.deleteConversation(userId, conversationId);
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "대화 메시지 목록 조회", description = "특정 대화의 전체 메시지 기록을 반환합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
