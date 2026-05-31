@@ -1,12 +1,13 @@
 package com.criticalflow.domain.session;
 
-import com.criticalflow.domain.focus.repository.FocusEventRepository;
 import com.criticalflow.domain.session.dto.SessionResponse;
+import com.criticalflow.domain.session.dto.VisionResultRequest;
 import com.criticalflow.domain.session.entity.StudySession;
 import com.criticalflow.domain.session.repository.StudySessionRepository;
 import com.criticalflow.domain.session.service.StudySessionService;
 import com.criticalflow.global.exception.DomainException;
 import com.criticalflow.global.exception.ErrorCode;
+import com.criticalflow.global.vision.PythonVisionClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.*;
 class StudySessionServiceTest {
 
     @Mock private StudySessionRepository studySessionRepository;
-    @Mock private FocusEventRepository focusEventRepository;
+    @Mock private PythonVisionClient pythonVisionClient;
 
     @InjectMocks
     private StudySessionService studySessionService;
@@ -83,44 +84,15 @@ class StudySessionServiceTest {
     class EndSession {
 
         @Test
-        @DisplayName("집중이탈 이벤트가 없을 때 totalFocusMinutes는 totalStudyMinutes와 같다")
-        void 집중이탈_없을때_포커스시간_같음() {
+        @DisplayName("세션 종료 시 endTime이 기록되고 Python 종료 신호가 전송된다")
+        void 세션_종료_성공() {
             when(studySessionRepository.findBySessionIdAndUserId(SESSION_ID, USER_ID))
                     .thenReturn(Optional.of(activeSession()));
-            when(focusEventRepository.sumDurationSecBySessionId(SESSION_ID)).thenReturn(0);
 
             SessionResponse response = studySessionService.endSession(USER_ID, SESSION_ID);
 
             assertThat(response.endTime()).isNotNull();
-            assertThat(response.totalStudyMinutes()).isGreaterThanOrEqualTo(0);
-            assertThat(response.totalFocusMinutes()).isEqualTo(response.totalStudyMinutes());
-        }
-
-        @Test
-        @DisplayName("집중이탈 이벤트가 있을 때 totalFocusMinutes는 차감된다")
-        void 집중이탈_있을때_포커스시간_차감() {
-            when(studySessionRepository.findBySessionIdAndUserId(SESSION_ID, USER_ID))
-                    .thenReturn(Optional.of(activeSession()));
-            // 600초(10분) 집중이탈
-            when(focusEventRepository.sumDurationSecBySessionId(SESSION_ID)).thenReturn(600);
-
-            SessionResponse response = studySessionService.endSession(USER_ID, SESSION_ID);
-
-            assertThat(response.totalFocusMinutes())
-                    .isEqualTo(response.totalStudyMinutes() - 10);
-        }
-
-        @Test
-        @DisplayName("집중이탈 시간이 학습 시간을 초과하면 totalFocusMinutes는 0이다")
-        void 집중이탈_초과시_포커스시간_0() {
-            when(studySessionRepository.findBySessionIdAndUserId(SESSION_ID, USER_ID))
-                    .thenReturn(Optional.of(activeSession()));
-            // 99999초 집중이탈 (학습 시간 초과)
-            when(focusEventRepository.sumDurationSecBySessionId(SESSION_ID)).thenReturn(99999);
-
-            SessionResponse response = studySessionService.endSession(USER_ID, SESSION_ID);
-
-            assertThat(response.totalFocusMinutes()).isEqualTo(0);
+            verify(pythonVisionClient).stopWebcam(SESSION_ID);
         }
 
         @Test
@@ -145,6 +117,41 @@ class StudySessionServiceTest {
                     .isInstanceOf(DomainException.class)
                     .extracting(e -> ((DomainException) e).getErrorCode())
                     .isEqualTo(ErrorCode.SESSION_ALREADY_ENDED);
+        }
+    }
+
+    @Nested
+    @DisplayName("비전 결과 적용")
+    class ApplyVisionResult {
+
+        @Test
+        @DisplayName("Python 콜백 결과를 세션에 정상 반영한다")
+        void 비전_결과_적용_성공() {
+            when(studySessionRepository.findById(SESSION_ID))
+                    .thenReturn(Optional.of(activeSession()));
+
+            VisionResultRequest request = new VisionResultRequest(1L, 3600, 3000, 300, 60, 2, 1);
+            SessionResponse response = studySessionService.applyVisionResult(SESSION_ID, request);
+
+            assertThat(response.totalStudyMinutes()).isEqualTo(60);  // 3600 / 60
+            assertThat(response.totalFocusMinutes()).isEqualTo(50);  // 3000 / 60
+            assertThat(response.drowsySeconds()).isEqualTo(300);
+            assertThat(response.absentSeconds()).isEqualTo(60);
+            assertThat(response.drowsyCount()).isEqualTo(2);
+            assertThat(response.absentCount()).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 세션에 비전 결과 적용 시 SESSION_NOT_FOUND 예외가 발생한다")
+        void 존재하지_않는_세션_비전_결과_예외() {
+            when(studySessionRepository.findById(SESSION_ID)).thenReturn(Optional.empty());
+
+            VisionResultRequest request = new VisionResultRequest(1L, 3600, 3000, 300, 60, 2, 1);
+
+            assertThatThrownBy(() -> studySessionService.applyVisionResult(SESSION_ID, request))
+                    .isInstanceOf(DomainException.class)
+                    .extracting(e -> ((DomainException) e).getErrorCode())
+                    .isEqualTo(ErrorCode.SESSION_NOT_FOUND);
         }
     }
 }
