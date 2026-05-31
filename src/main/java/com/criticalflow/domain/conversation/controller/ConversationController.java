@@ -23,7 +23,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -50,10 +49,8 @@ public class ConversationController {
                             examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}")))
     })
     @GetMapping
-            @AuthenticationPrincipal Long userId) {
-        if (userId == null) {
-            throw new DomainException(ErrorCode.INVALID_ACCESS_TOKEN);
-        }
+    public ResponseEntity<List<Long>> getConversationIds(
+            @Parameter(description = "사용자 ID", required = true) @RequestParam Long userId) {
         return ResponseEntity.ok(conversationService.getConversationIds(userId));
     }
 
