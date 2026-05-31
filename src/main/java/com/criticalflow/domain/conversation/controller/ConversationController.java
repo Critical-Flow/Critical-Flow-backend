@@ -23,7 +23,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -97,7 +96,7 @@ public class ConversationController {
     })
     @DeleteMapping("/{conversationId}")
     public ResponseEntity<Void> deleteConversation(
-            @AuthenticationPrincipal Long userId,
+            @Parameter(description = "사용자 ID", required = true) @RequestParam Long userId,
             @Parameter(description = "대화 ID", required = true) @PathVariable Long conversationId) {
         conversationService.deleteConversation(userId, conversationId);
         return ResponseEntity.noContent().build();
