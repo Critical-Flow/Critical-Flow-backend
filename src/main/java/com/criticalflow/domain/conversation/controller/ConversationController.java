@@ -2,7 +2,6 @@ package com.criticalflow.domain.conversation.controller;
 
 import com.criticalflow.domain.conversation.entity.AiConversation;
 import com.criticalflow.domain.conversation.dto.ConversationResponse;
-import com.criticalflow.domain.conversation.dto.ConversationSummaryResponse;
 import com.criticalflow.domain.conversation.dto.MessageResponse;
 import com.criticalflow.domain.conversation.dto.SendMessageRequest;
 import com.criticalflow.domain.conversation.dto.StartConversationRequest;
@@ -14,7 +13,6 @@ import com.criticalflow.global.exception.ErrorCode;
 import com.criticalflow.global.exception.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -41,24 +39,20 @@ public class ConversationController {
 
     @Operation(
             summary = "대화 목록 조회",
-            description = "현재 로그인한 유저의 전체 대화 목록을 최신순으로 반환합니다.",
+            description = "현재 로그인한 유저가 보유한 채팅방 ID 목록을 반환합니다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = ConversationSummaryResponse.class)))),
+                    content = @Content(schema = @Schema(type = "array", example = "[1, 2, 3]"))),
             @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}")))
     })
     @GetMapping
-    public ResponseEntity<List<ConversationSummaryResponse>> getConversations(
+    public ResponseEntity<List<Long>> getConversationIds(
             @AuthenticationPrincipal Long userId) {
-        List<ConversationSummaryResponse> conversations = conversationService.getConversations(userId)
-                .stream()
-                .map(ConversationSummaryResponse::from)
-                .toList();
-        return ResponseEntity.ok(conversations);
+        return ResponseEntity.ok(conversationService.getConversationIds(userId));
     }
 
     @Operation(summary = "대화 시작", description = "노트를 기반으로 AI 튜터 대화를 시작합니다. 첫 질문이 자동 생성됩니다.")
