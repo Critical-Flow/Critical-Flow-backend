@@ -1,24 +1,24 @@
 package com.criticalflow.domain.session.service;
 
-import com.criticalflow.domain.focus.repository.FocusEventRepository;
 import com.criticalflow.domain.session.dto.SessionResponse;
+import com.criticalflow.domain.session.dto.VisionResultRequest;
 import com.criticalflow.domain.session.entity.StudySession;
 import com.criticalflow.domain.session.repository.StudySessionRepository;
 import com.criticalflow.global.exception.DomainException;
 import com.criticalflow.global.exception.ErrorCode;
+import com.criticalflow.global.vision.PythonVisionClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 
 @Service
 @RequiredArgsConstructor
 public class StudySessionService {
 
     private final StudySessionRepository studySessionRepository;
-    private final FocusEventRepository focusEventRepository;
+    private final PythonVisionClient pythonVisionClient;
 
     @Transactional
     public SessionResponse startSession(Long userId) {
@@ -26,7 +26,9 @@ public class StudySessionService {
                 .userId(userId)
                 .startTime(LocalDateTime.now())
                 .build();
-        return SessionResponse.from(studySessionRepository.save(session));
+        StudySession saved = studySessionRepository.save(session);
+        pythonVisionClient.startWebcam(saved.getSessionId(), userId);
+        return SessionResponse.from(saved);
     }
 
     @Transactional
@@ -38,14 +40,24 @@ public class StudySessionService {
             throw new DomainException(ErrorCode.SESSION_ALREADY_ENDED);
         }
 
-        LocalDateTime endTime = LocalDateTime.now();
-        int totalStudyMinutes = (int) ChronoUnit.MINUTES.between(session.getStartTime(), endTime);
+        session.end(LocalDateTime.now());
+        pythonVisionClient.stopWebcam(sessionId);
+        return SessionResponse.from(session);
+    }
 
-        int lostSec = focusEventRepository.sumDurationSecBySessionId(sessionId);
-        int lostMinutes = lostSec / 60;
-        int totalFocusMinutes = Math.max(0, totalStudyMinutes - lostMinutes);
+    @Transactional
+    public SessionResponse applyVisionResult(Long sessionId, VisionResultRequest request) {
+        StudySession session = studySessionRepository.findById(sessionId)
+                .orElseThrow(() -> new DomainException(ErrorCode.SESSION_NOT_FOUND));
 
-        session.end(endTime, totalStudyMinutes, totalFocusMinutes);
+        session.applyVisionResult(
+                request.totalStudySeconds(),
+                request.goodFocusSeconds(),
+                request.drowsySeconds(),
+                request.absentSeconds(),
+                request.drowsyCount(),
+                request.absentCount()
+        );
         return SessionResponse.from(session);
     }
 }

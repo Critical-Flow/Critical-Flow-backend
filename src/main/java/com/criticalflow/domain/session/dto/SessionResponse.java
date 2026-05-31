@@ -9,7 +9,11 @@ public record SessionResponse(
         LocalDateTime startTime,
         LocalDateTime endTime,
         Integer totalStudyMinutes,
-        Integer totalFocusMinutes
+        Integer totalFocusMinutes,
+        Integer drowsyCount,
+        Integer absentCount,
+        Integer drowsySeconds,
+        Integer absentSeconds
 ) {
     public static SessionResponse from(StudySession session) {
         return new SessionResponse(
@@ -17,7 +21,11 @@ public record SessionResponse(
                 session.getStartTime(),
                 session.getEndTime(),
                 session.getTotalStudyMinutes(),
-                session.getTotalFocusMinutes()
+                session.getTotalFocusMinutes(),
+                session.getDrowsyCount(),
+                session.getAbsentCount(),
+                session.getDrowsySeconds(),
+                session.getAbsentSeconds()
         );
     }
 }
