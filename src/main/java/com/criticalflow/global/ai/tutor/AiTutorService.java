@@ -82,14 +82,25 @@ public class AiTutorService {
         String resolvedPrompt = resolvePrompt(note.getContent(), ragContext.format(), focusEvents,
                 conversation.getType().name(), hasCodeBlock);
 
-        String aiContent = chatClient.prompt()
-                .system(resolvedPrompt)
-                .advisors(spec -> spec
-                        .param("note", note)
-                        .param("ragContext", ragContext)
-                        .param("preSelectedType", questionType))
-                .call()
-                .content();
+        String aiContent;
+        try {
+            aiContent = chatClient.prompt()
+                    .system(resolvedPrompt)
+                    .advisors(spec -> spec
+                            .param("note", note)
+                            .param("ragContext", ragContext)
+                            .param("preSelectedType", questionType))
+                    .call()
+                    .content();
+        } catch (Exception e) {
+            throw new DomainException(ErrorCode.AI_RESPONSE_FAILED);
+        }
+
+        if (aiContent == null || aiContent.isBlank()) {
+            String fallback = "잠시 응답을 생성하지 못했어. 다시 한 번 메시지를 보내줄 수 있어?";
+            persistMessage(conversationId, MessageRole.AI, fallback, 1);
+            return TutorResponse.builder().content(fallback).build();
+        }
 
         persistMessage(conversationId, MessageRole.AI, aiContent, 1);
 
@@ -123,15 +134,26 @@ public class AiTutorService {
 
         List<Message> historyMessages = buildHistoryMessages(history);
 
-        String aiContent = chatClient.prompt()
-                .system(resolvedPrompt)
-                .messages(historyMessages)
-                .user(userMessage)
-                .advisors(spec -> spec
-                        .param("note", note)
-                        .param("ragContext", ragContext))
-                .call()
-                .content();
+        String aiContent;
+        try {
+            aiContent = chatClient.prompt()
+                    .system(resolvedPrompt)
+                    .messages(historyMessages)
+                    .user(userMessage)
+                    .advisors(spec -> spec
+                            .param("note", note)
+                            .param("ragContext", ragContext))
+                    .call()
+                    .content();
+        } catch (Exception e) {
+            throw new DomainException(ErrorCode.AI_RESPONSE_FAILED);
+        }
+
+        if (aiContent == null || aiContent.isBlank()) {
+            String fallback = "잠시 응답을 생성하지 못했어. 다시 한 번 메시지를 보내줄 수 있어?";
+            persistMessage(conversationId, MessageRole.AI, fallback, history.size() + 2);
+            return TutorResponse.builder().content(fallback).build();
+        }
 
         persistMessage(conversationId, MessageRole.AI, aiContent, history.size() + 2);
 
