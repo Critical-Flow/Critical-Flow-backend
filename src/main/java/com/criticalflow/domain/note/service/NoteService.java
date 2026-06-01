@@ -19,6 +19,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NoteService {
 
+    private static final int MAX_NOTE_LENGTH = 500;
+
     private final StudyNoteRepository noteRepository;
     private final NoteEmbeddingService noteEmbeddingService;
 
@@ -29,6 +31,9 @@ public class NoteService {
         }
         if (request.content() == null || request.content().isBlank()) {
             throw new DomainException(ErrorCode.NOTE_CONTENT_REQUIRED);
+        }
+        if (request.content().length() > MAX_NOTE_LENGTH) {
+            throw new DomainException(ErrorCode.NOTE_CONTENT_TOO_LONG);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -55,6 +60,9 @@ public class NoteService {
         }
         if (request.content() == null || request.content().isBlank()) {
             throw new DomainException(ErrorCode.NOTE_CONTENT_REQUIRED);
+        }
+        if (request.content().length() > MAX_NOTE_LENGTH) {
+            throw new DomainException(ErrorCode.NOTE_CONTENT_TOO_LONG);
         }
 
         StudyNote note = getOwnedNote(userId, noteId);

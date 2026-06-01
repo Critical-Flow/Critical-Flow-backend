@@ -11,6 +11,7 @@ public enum ErrorCode {
     NOTE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "NOTE_ACCESS_DENIED", "해당 노트에 대한 접근 권한이 없습니다."),
     NOTE_TITLE_REQUIRED(HttpStatus.BAD_REQUEST, "NOTE_TITLE_REQUIRED", "노트 제목은 필수입니다."),
     NOTE_CONTENT_REQUIRED(HttpStatus.BAD_REQUEST, "NOTE_CONTENT_REQUIRED", "노트 내용은 필수입니다."),
+    NOTE_CONTENT_TOO_LONG(HttpStatus.BAD_REQUEST, "NOTE_CONTENT_TOO_LONG", "노트 본문 길이가 허용 범위(500자)를 초과했습니다."),
 
     // Conversation
     CONVERSATION_NOT_FOUND(HttpStatus.NOT_FOUND, "CONVERSATION_NOT_FOUND", "대화를 찾을 수 없습니다."),
