@@ -58,7 +58,8 @@ rag:
   similarity-threshold: 0.55  # [#60 측정 중] 1차 측정 완료 후 0.55로 변경
   max-results: 4
   focus-lookback-minutes: 15
-  bm25-max-results: 10
+  bm25-max-results: 10        # 0 = Dense-only 모드 (Sparse 비활성화)
+  dense-disabled: false       # true = Sparse-only 모드 (Dense 비활성화, Sparse 단독 Recall 측정용)
 
 jwt:
   secret: ${JWT_SECRET}
