@@ -19,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NoteService {
 
-    private static final int MAX_NOTE_LENGTH = 500;
+    private static final int MAX_NOTE_LENGTH = 2_000;
 
     private final StudyNoteRepository noteRepository;
     private final NoteEmbeddingService noteEmbeddingService;
