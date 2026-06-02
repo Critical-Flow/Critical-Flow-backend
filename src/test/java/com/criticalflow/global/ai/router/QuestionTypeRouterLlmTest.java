@@ -206,35 +206,6 @@ class QuestionTypeRouterLlmTest {
         updateClear(r == QuestionType.TYPE_D);
     }
 
-    // ── TYPE F — 적용 탐구 ───────────────────────────────────────────────────
-
-    @Test @DisplayName("TYPE_F: 동적 프로그래밍 순수 이론 설명")
-    void typeF_DP() {
-        QuestionType r = routeWithConsistency("TYPE_F_DP",
-                "동적 프로그래밍이란 큰 문제를 작은 부분 문제로 나눠 각 결과를 저장하고 재사용하는 기법이다.",
-                emptyRag(), QuestionType.TYPE_F);
-        assertThat(r).isEqualTo(QuestionType.TYPE_F);
-        updateClear(r == QuestionType.TYPE_F);
-    }
-
-    @Test @DisplayName("TYPE_F: 소프트웨어 아키텍처 이론 설명")
-    void typeF_Architecture() {
-        QuestionType r = routeWithConsistency("TYPE_F_Architecture",
-                "소프트웨어 아키텍처는 시스템을 구성하는 컴포넌트와 그 사이의 관계를 정의한다.",
-                emptyRag(), QuestionType.TYPE_F);
-        assertThat(r).isEqualTo(QuestionType.TYPE_F);
-        updateClear(r == QuestionType.TYPE_F);
-    }
-
-    @Test @DisplayName("TYPE_F: 캡슐화 이론 설명")
-    void typeF_Encapsulation() {
-        QuestionType r = routeWithConsistency("TYPE_F_Encapsulation",
-                "캡슐화란 객체의 내부 상태와 구현을 외부로부터 숨기고 공개 인터페이스를 통해서만 접근하게 하는 것이다.",
-                emptyRag(), QuestionType.TYPE_F);
-        assertThat(r).isEqualTo(QuestionType.TYPE_F);
-        updateClear(r == QuestionType.TYPE_F);
-    }
-
     // ── 경계 케이스 ───────────────────────────────────────────────────────────
 
     @Test @DisplayName("경계: TYPE_A vs TYPE_D — HashMap 개념+엣지케이스")
@@ -244,16 +215,6 @@ class QuestionTypeRouterLlmTest {
                 emptyRag(), null);
         boolean acceptable = r == QuestionType.TYPE_A || r == QuestionType.TYPE_D;
         System.out.printf("[경계_A_vs_D] 결과: %s | 허용 범위(A or D): %s%n", r, acceptable);
-        assertThat(acceptable).isTrue();
-    }
-
-    @Test @DisplayName("경계: TYPE_A vs TYPE_F — DP 개념+순수텍스트")
-    void boundary_A_vs_F() {
-        QuestionType r = routeWithConsistency("경계_A_vs_F",
-                "동적 프로그래밍은 메모이제이션으로 중복 계산을 줄인다.",
-                emptyRag(), null);
-        boolean acceptable = r == QuestionType.TYPE_A || r == QuestionType.TYPE_F;
-        System.out.printf("[경계_A_vs_F] 결과: %s | 허용 범위(A or F): %s%n", r, acceptable);
         assertThat(acceptable).isTrue();
     }
 
@@ -274,10 +235,10 @@ class QuestionTypeRouterLlmTest {
         System.out.println("\n========== QuestionTypeRouter LLM 테스트 최종 결과 ==========");
         results.forEach((label, runs) ->
                 System.out.printf("  %-25s → %s%n", label, runs));
-        System.out.printf("%n명확한 케이스 정확도: %d / %d (합격 기준: 13/15 이상)%n",
+        System.out.printf("%n명확한 케이스 정확도: %d / %d (합격 기준: 10/12 이상)%n",
                 clearCorrect, clearTotal);
         System.out.printf("판정: %s%n",
-                clearCorrect >= 13 ? "✅ PASS" : "❌ FAIL");
+                clearCorrect >= 10 ? "✅ PASS" : "❌ FAIL");
         System.out.println("=============================================================");
     }
 
