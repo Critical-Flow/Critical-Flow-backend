@@ -2,6 +2,10 @@ server:
   port: 8080
   forward-headers-strategy: FRAMEWORK
 
+logging:
+  file:
+    name: /tmp/criticalflow.log
+
 spring:
   application:
     name: criticalflow
