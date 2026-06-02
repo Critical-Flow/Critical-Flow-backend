@@ -27,6 +27,9 @@ public class RagRetrievalService {
     @Value("${rag.bm25-max-results:10}")
     private int bm25MaxResults;
 
+    @Value("${rag.dense-disabled:false}")
+    private boolean denseDisabled;
+
     /**
      * Dense + Sparse 하이브리드 검색 후 RRF로 병합한다.
      *
@@ -38,8 +41,8 @@ public class RagRetrievalService {
         List<Document> denseResults  = denseSearch(queryText, userId, excludeNoteId);
         List<Document> sparseResults = sparseSearch(queryText, userId, excludeNoteId);
 
-        // [#62 측정 로그 — Dense-only vs 하이브리드 Recall@4 비교. 측정 완료 후 제거]
-        log.info("[#62] Dense: {}건 {}, Sparse: {}건 {}",
+        String mode = denseDisabled ? "Sparse-only" : (bm25MaxResults == 0 ? "Dense-only" : "하이브리드");
+        log.info("[Recall측정] Dense: {}건 {}, Sparse: {}건 {}",
                 denseResults.size(),
                 denseResults.stream().map(d -> getMeta(d, "title")).toList(),
                 sparseResults.size(),
@@ -57,9 +60,7 @@ public class RagRetrievalService {
                         .build())
                 .toList();
 
-        // [#62 측정 로그 — 측정 완료 후 제거]
-        String mode = bm25MaxResults == 0 ? "Dense-only" : "하이브리드";
-        log.info("[#62] [{}] 최종 Top-4: {}",
+        log.info("[Recall측정] [{}] 최종 Top-4: {}",
                 mode, chunks.stream().map(RagContext.RetrievedChunk::getTitle).toList());
 
         return RagContext.builder().chunks(chunks).build();
@@ -68,6 +69,7 @@ public class RagRetrievalService {
     // ── Dense 검색 ────────────────────────────────────────────────────────────
 
     private List<Document> denseSearch(String queryText, Long userId, Long excludeNoteId) {
+        if (denseDisabled) return List.of(); // Sparse-only 모드 (Sparse 단독 Recall 측정용)
         return vectorStore.similaritySearch(SearchRequest.builder()
                 .query(queryText)
                 .topK(maxResults + 2)
