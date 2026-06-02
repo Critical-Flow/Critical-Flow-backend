@@ -38,10 +38,22 @@ public class RagRetrievalService {
      * RRF    — 두 순위 리스트를 1/(k+rank) 점수로 병합
      */
     public RagContext retrieve(String queryText, Long userId, Long excludeNoteId) {
+        if (denseDisabled && bm25MaxResults == 0) {
+            throw new IllegalStateException(
+                "Invalid RAG config: dense-disabled=true requires bm25-max-results > 0. " +
+                "현재 설정은 Dense와 Sparse가 모두 비활성화되어 검색 결과가 항상 빈 목록이 됩니다."
+            );
+        }
+
         List<Document> denseResults  = denseSearch(queryText, userId, excludeNoteId);
         List<Document> sparseResults = sparseSearch(queryText, userId, excludeNoteId);
 
-        String mode = denseDisabled ? "Sparse-only" : (bm25MaxResults == 0 ? "Dense-only" : "하이브리드");
+        String mode;
+        if (denseDisabled) {
+            mode = "Sparse-only";
+        } else {
+            mode = (bm25MaxResults == 0) ? "Dense-only" : "하이브리드";
+        }
         log.info("[Recall측정] Dense: {}건 {}, Sparse: {}건 {}",
                 denseResults.size(),
                 denseResults.stream().map(d -> getMeta(d, "title")).toList(),
