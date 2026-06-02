@@ -143,17 +143,15 @@ Recall@4(쿼리 노트) = 정답 포함 수 / 전체 정답 수
 | 측정일 | 변경 내용 | Recall@4 | 판정 |
 |---|---|---|---|
 | 2026-06-02 | 기준선 (하이브리드 최초 측정, test/sparse-only-recall 환경) | 0.43 | PASS |
-| 2026-06-02 | REQ-AIV-010 회귀 측정 최초 실행 | 0.21 | **FAIL** |
+| 2026-06-02 | REQ-AIV-010 회귀 측정 최초 실행 (ChromaDB 호환성 이슈) | 0.21 | FAIL |
+| 2026-06-02 | ChromaDB 호환성 수정 후 재측정 | **0.42** | **PASS ✅** |
 
-### 2026-06-02 FAIL 원인 분석
+### 2026-06-02 수정 내역 — ChromaDB 1.0.0 호환성
 
-Dense 검색이 모든 쿼리에서 0건을 반환했다. ChromaDB v1 쿼리 API가 `405 Method Not Allowed`를 반환하는 환경 이슈로, Spring AI 1.0.6이 사용하는 v1 REST API와 현재 ChromaDB 버전 간 비호환으로 추정된다.
+**문제**: `note_id != '{id}'` 필터가 ChromaDB 1.0.0에서 0건 반환
+- `&&` 조합 필터에서 `!=` 연산자 비호환
+- 기존 ChromaDB 컬렉션의 HNSW 인덱스 손상으로 similarity search 1건만 반환
 
-| 검색 방식 | 동작 여부 | 비고 |
-|---|---|---|
-| Dense (`similarityThreshold=0.55`) | ❌ 0건 | ChromaDB v1 threshold 쿼리 미동작 |
-| Sparse (`similarityThreshold=0.0`) | ✅ 정상 | threshold=0.0은 정상 동작 |
-
-유효 Recall@4 = 0.21 (Sparse 단독과 동일)
-
-**조치 필요**: ChromaDB/Spring AI 호환성 확인 후 Dense 검색 정상화 시 재측정 필요.
+**수정 내용**:
+1. `note_id !=` 필터를 Java 단 후처리로 변경 (`RagRetrievalService.denseSearch`, `sparseSearch`)
+2. ChromaDB 컬렉션 재생성 후 재임베딩 (cosine space 명시)

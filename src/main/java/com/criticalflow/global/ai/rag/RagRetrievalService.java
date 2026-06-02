@@ -82,12 +82,23 @@ public class RagRetrievalService {
 
     private List<Document> denseSearch(String queryText, Long userId, Long excludeNoteId) {
         if (denseDisabled) return List.of(); // Sparse-only 모드 (Sparse 단독 Recall 측정용)
-        return vectorStore.similaritySearch(SearchRequest.builder()
-                .query(queryText)
-                .topK(maxResults + 2)
-                .similarityThreshold(similarityThreshold)
-                .filterExpression("user_id == '" + userId + "' && note_id != '" + excludeNoteId + "'")
-                .build());
+        try {
+            // note_id != 필터가 ChromaDB 1.0.0에서 동작하지 않아 Java 단에서 후처리로 제거
+            List<Document> results = vectorStore.similaritySearch(SearchRequest.builder()
+                    .query(queryText)
+                    .topK(maxResults + 3)
+                    .similarityThreshold(similarityThreshold)
+                    .filterExpression("user_id == '" + userId + "'")
+                    .build());
+            return results.stream()
+                    .filter(doc -> !excludeNoteId.toString().equals(getMeta(doc, "note_id")))
+                    .limit(maxResults + 2)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.warn("[Dense 검색 오류] threshold={}, query 앞 30자='{}', 원인: {}",
+                    similarityThreshold, queryText.substring(0, Math.min(30, queryText.length())), e.getMessage());
+            return List.of();
+        }
     }
 
     // ── Sparse 검색 (키워드 기반) ─────────────────────────────────────────────
@@ -98,14 +109,16 @@ public class RagRetrievalService {
         if (keywords.isEmpty()) return List.of();
 
         // threshold 0.0으로 넓게 후보를 가져온 뒤 키워드 포함 여부로 필터
+        // note_id != 필터가 ChromaDB 1.0.0에서 동작하지 않아 Java 단에서 후처리로 제거
         List<Document> candidates = vectorStore.similaritySearch(SearchRequest.builder()
                 .query(queryText)
-                .topK(bm25MaxResults)
+                .topK(bm25MaxResults + 1)
                 .similarityThreshold(0.0)
-                .filterExpression("user_id == '" + userId + "' && note_id != '" + excludeNoteId + "'")
+                .filterExpression("user_id == '" + userId + "'")
                 .build());
 
         return candidates.stream()
+                .filter(doc -> !excludeNoteId.toString().equals(getMeta(doc, "note_id")))
                 .filter(doc -> {
                     String content = doc.getText().toLowerCase();
                     return keywords.stream().anyMatch(content::contains);
