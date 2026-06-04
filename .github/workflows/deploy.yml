@@ -84,6 +84,7 @@ jobs:
             CHROMA_HOST=http://chroma
             CHROMA_PORT=8000
             FRONTEND_CALLBACK_URL=${{ secrets.FRONTEND_CALLBACK_URL }}
+            PYTHON_VISION_URL=${{ secrets.PYTHON_VISION_URL }}
             ENVEOF
 
             # GHCR 로그인
