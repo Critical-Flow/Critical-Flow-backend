@@ -19,8 +19,6 @@ TYPE_C — 과거 학습 연계 (RAG 있을 때만 선택 가능)
 TYPE_D — 심층 사고 탐구
   When: 기본 개념 이해 후 엣지케이스, 실패 케이스, 경계 조건을 탐구할 수 있는 경우
 
-TYPE_E — 코드 동작 탐침
-  When: 노트에 코드 블록이 포함된 경우 (최우선 선택)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [FEW-SHOT EXAMPLES]
@@ -37,9 +35,6 @@ Answer: TYPE_C
 
 Note: "재귀 함수는 기저 조건(base case)이 없으면 스택 오버플로우가 발생한다."
 Answer: TYPE_D
-
-Note: "```java\npublic int fibonacci(int n) {\n    if (n <= 1) return n;\n    return fibonacci(n-1) + fibonacci(n-2);\n}\n```"
-Answer: TYPE_E
 
 Note: "동적 프로그래밍이란 큰 문제를 작은 부분 문제로 나누어 해결하고 그 결과를 저장해 재사용하는 기법이다."
 Answer: TYPE_A

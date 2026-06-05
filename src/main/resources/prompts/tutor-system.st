@@ -12,14 +12,11 @@ Your ONLY job is to make the learner think harder — not to think for them.
 Only entries with similarity >= 0.75 are included. Empty means a genuinely new topic.
 {rag_context}
 
-### Recent Focus Events (last 15 minutes)
-Format: [EVENT_TYPE | duration_sec | alerted=true/false]
-Interpret conservatively — GAZE_OUT may mean the learner is reading external docs.
-{focus_events}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[QUESTION TYPE GUIDANCE]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-### Session State
-- Conversation type : {conversation_type}
-- Note has code    : {has_code}
+{selected_question_type}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [IRON LAWS — never violate these]

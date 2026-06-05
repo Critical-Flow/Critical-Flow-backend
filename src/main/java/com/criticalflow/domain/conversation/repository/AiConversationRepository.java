@@ -14,8 +14,8 @@ public interface AiConversationRepository extends JpaRepository<AiConversation, 
            "WHERE c.questionType IS NOT NULL")
     List<Object[]> findTrainingData();
 
-    @Query("SELECT c.conversationId FROM AiConversation c WHERE c.userId = :userId")
-    List<Long> findConversationIdsByUserId(@Param("userId") Long userId);
+    @Query("SELECT c.conversationId FROM AiConversation c WHERE c.userId = :userId AND c.noteId = :noteId")
+    List<Long> findConversationIdsByUserIdAndNoteId(@Param("userId") Long userId, @Param("noteId") Long noteId);
 
     void deleteByUserId(Long userId);
 }
