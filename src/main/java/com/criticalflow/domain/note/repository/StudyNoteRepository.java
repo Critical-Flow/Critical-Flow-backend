@@ -20,7 +20,7 @@ public interface StudyNoteRepository extends JpaRepository<StudyNote, Long> {
 
     void deleteByUserId(Long userId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE StudyNote n SET n.categoryId = NULL WHERE n.categoryId = :categoryId")
     void clearCategoryId(Long categoryId);
 }

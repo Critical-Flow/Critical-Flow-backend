@@ -1,5 +1,6 @@
 package com.criticalflow.global.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -75,6 +76,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponse(ErrorCode.INVALID_ACCESS_TOKEN.getCode(),
                         ErrorCode.INVALID_ACCESS_TOKEN.getMessage()));
+    }
+
+    // ── DB 제약 위반 ───────────────────────────────────────────────
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException e) {
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse(ErrorCode.INVALID_REQUEST_BODY.getCode(),
+                        "요청 데이터가 제약 조건을 위반했습니다."));
     }
 
     // ── 기타 ──────────────────────────────────────────────────────

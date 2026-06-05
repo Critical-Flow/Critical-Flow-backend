@@ -25,6 +25,9 @@ public class CategoryService {
 
     @Transactional
     public CategoryResponse create(Long userId, CategoryCreateRequest request) {
+        if (request.title() == null || request.title().isBlank()) {
+            throw new DomainException(ErrorCode.CATEGORY_TITLE_REQUIRED);
+        }
         Category category = Category.builder()
                 .userId(userId)
                 .title(request.title())
