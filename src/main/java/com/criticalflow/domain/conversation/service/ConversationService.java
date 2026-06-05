@@ -45,8 +45,8 @@ public class ConversationService {
     }
 
     @Transactional(readOnly = true)
-    public List<Long> getConversationIds(Long userId) {
-        return conversationRepository.findConversationIdsByUserId(userId);
+    public List<Long> getConversationIds(Long userId, Long noteId) {
+        return conversationRepository.findConversationIdsByUserIdAndNoteId(userId, noteId);
     }
 
     @Transactional(readOnly = true)
