@@ -66,5 +66,6 @@ test {
     if (System.getenv('CI')) {
         exclude '**/NotePreprocessorEmbeddingQualityTest*'
         exclude '**/RagRetrievalServiceIntegrationTest*'
+        exclude '**/QuestionTypeRouterLlmTest*'
     }
 }

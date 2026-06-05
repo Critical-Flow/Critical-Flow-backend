@@ -6,8 +6,8 @@ Respond with ONLY the type label (e.g. TYPE_A). No explanation.
 [QUESTION TYPES]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-TYPE_A — 개념 정의 확인
-  When: 노트에 새로운 용어나 개념이 처음 등장하며 설명이 부족한 경우
+TYPE_A — 개념 정의 확인 및 적용 탐구
+  When: 노트에 새로운 용어나 개념이 등장하거나, 코드 없이 이론·개념만 서술된 순수 텍스트 노트인 경우
 
 TYPE_B — 설계 의도 탐침
   When: 노트에 특정 방식이나 기술을 선택한 이유, 트레이드오프, 비교가 포함된 경우
@@ -21,9 +21,6 @@ TYPE_D — 심층 사고 탐구
 
 TYPE_E — 코드 동작 탐침
   When: 노트에 코드 블록이 포함된 경우 (최우선 선택)
-
-TYPE_F — 실제 적용 맥락 탐침
-  When: 코드 없이 이론/개념만 설명된 순수 텍스트 노트인 경우
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [FEW-SHOT EXAMPLES]
@@ -45,7 +42,7 @@ Note: "```java\npublic int fibonacci(int n) {\n    if (n <= 1) return n;\n    re
 Answer: TYPE_E
 
 Note: "동적 프로그래밍이란 큰 문제를 작은 부분 문제로 나누어 해결하고 그 결과를 저장해 재사용하는 기법이다."
-Answer: TYPE_F
+Answer: TYPE_A
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [INPUT]
