@@ -30,6 +30,7 @@ public enum ErrorCode {
 
     // Category
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND", "카테고리를 찾을 수 없습니다."),
+    CATEGORY_TITLE_REQUIRED(HttpStatus.BAD_REQUEST, "CATEGORY_TITLE_REQUIRED", "카테고리 제목은 필수입니다."),
 
     // Session
     SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "SESSION_NOT_FOUND", "학습 세션을 찾을 수 없습니다."),
