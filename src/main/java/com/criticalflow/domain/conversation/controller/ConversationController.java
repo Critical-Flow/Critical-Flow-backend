@@ -50,8 +50,9 @@ public class ConversationController {
     })
     @GetMapping
     public ResponseEntity<List<Long>> getConversationIds(
-            @Parameter(description = "사용자 ID", required = true) @RequestParam Long userId) {
-        return ResponseEntity.ok(conversationService.getConversationIds(userId));
+            @Parameter(description = "사용자 ID", required = true) @RequestParam Long userId,
+            @Parameter(description = "노트 ID", required = true) @RequestParam Long noteId) {
+        return ResponseEntity.ok(conversationService.getConversationIds(userId, noteId));
     }
 
     @Operation(summary = "대화 시작", description = "노트를 기반으로 AI 튜터 대화를 시작합니다. 첫 질문이 자동 생성됩니다.")
