@@ -1,6 +1,8 @@
 package com.criticalflow.domain.focus.service;
 
+import com.criticalflow.domain.focus.dto.FocusEventCreateRequest;
 import com.criticalflow.domain.focus.dto.FocusEventResponse;
+import com.criticalflow.domain.focus.entity.FocusEvent;
 import com.criticalflow.domain.focus.repository.FocusEventRepository;
 import com.criticalflow.domain.session.entity.StudySession;
 import com.criticalflow.domain.session.repository.StudySessionRepository;
@@ -18,6 +20,21 @@ public class FocusEventService {
 
     private final FocusEventRepository focusEventRepository;
     private final StudySessionRepository studySessionRepository;
+
+    @Transactional
+    public FocusEventResponse createEvent(Long sessionId, FocusEventCreateRequest request) {
+        if (!studySessionRepository.existsById(sessionId)) {
+            throw new DomainException(ErrorCode.SESSION_NOT_FOUND);
+        }
+        FocusEvent event = FocusEvent.builder()
+                .sessionId(sessionId)
+                .eventType(request.eventType())
+                .detectedAt(request.detectedAt())
+                .durationSec(request.durationSec())
+                .alerted(false)
+                .build();
+        return FocusEventResponse.from(focusEventRepository.save(event));
+    }
 
     @Transactional(readOnly = true)
     public List<FocusEventResponse> getEventsBySession(Long userId, Long sessionId) {

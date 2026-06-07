@@ -69,6 +69,28 @@ public class StudySessionController {
     }
 
     @Operation(
+            summary = "세션 단건 조회",
+            description = "sessionId로 특정 세션의 상세 정보를 조회합니다. 본인 세션만 조회 가능합니다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}"))),
+            @ApiResponse(responseCode = "404", description = "세션을 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"SESSION_NOT_FOUND\",\"message\":\"학습 세션을 찾을 수 없습니다.\"}")))
+    })
+    @GetMapping("/{sessionId}")
+    public ResponseEntity<SessionResponse> getSession(
+            @AuthenticationPrincipal Long userId,
+            @Parameter(description = "조회할 세션 ID", required = true) @PathVariable Long sessionId
+    ) {
+        return ResponseEntity.ok(studySessionService.getSession(userId, sessionId));
+    }
+
+    @Operation(
             summary = "학습 세션 시작",
             description = "새 학습 세션을 시작합니다. 현재 시각이 startTime으로 기록됩니다.",
             security = @SecurityRequirement(name = "bearerAuth")

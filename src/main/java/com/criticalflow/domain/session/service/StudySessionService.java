@@ -48,6 +48,13 @@ public class StudySessionService {
     }
 
     @Transactional(readOnly = true)
+    public SessionResponse getSession(Long userId, Long sessionId) {
+        return studySessionRepository.findBySessionIdAndUserId(sessionId, userId)
+                .map(SessionResponse::from)
+                .orElseThrow(() -> new DomainException(ErrorCode.SESSION_NOT_FOUND));
+    }
+
+    @Transactional(readOnly = true)
     public Optional<SessionResponse> getActiveSession(Long userId) {
         return studySessionRepository
                 .findFirstByUserIdAndEndTimeIsNullOrderByStartTimeDesc(userId)
