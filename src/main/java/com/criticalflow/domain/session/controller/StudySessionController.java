@@ -19,6 +19,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 @Tag(name = "Study Session", description = "학습 세션 시작·종료 API")
 @RestController
@@ -27,6 +28,45 @@ import java.net.URI;
 public class StudySessionController {
 
     private final StudySessionService studySessionService;
+
+    @Operation(
+            summary = "세션 목록 조회",
+            description = "현재 로그인한 사용자의 전체 세션 목록을 최신순으로 반환합니다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}")))
+    })
+    @GetMapping
+    public ResponseEntity<List<SessionResponse>> getSessions(
+            @AuthenticationPrincipal Long userId
+    ) {
+        return ResponseEntity.ok(studySessionService.getSessions(userId));
+    }
+
+    @Operation(
+            summary = "현재 진행 중인 세션 조회",
+            description = "종료되지 않은 세션이 있으면 반환합니다. 없으면 204 No Content를 반환합니다.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "진행 중인 세션 있음"),
+            @ApiResponse(responseCode = "204", description = "진행 중인 세션 없음"),
+            @ApiResponse(responseCode = "401", description = "인증 토큰 없음 또는 만료",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"유효하지 않은 AccessToken입니다.\"}")))
+    })
+    @GetMapping("/active")
+    public ResponseEntity<SessionResponse> getActiveSession(
+            @AuthenticationPrincipal Long userId
+    ) {
+        return studySessionService.getActiveSession(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
 
     @Operation(
             summary = "학습 세션 시작",
