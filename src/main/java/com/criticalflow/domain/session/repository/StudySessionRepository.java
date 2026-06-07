@@ -11,4 +11,6 @@ public interface StudySessionRepository extends JpaRepository<StudySession, Long
     Optional<StudySession> findBySessionIdAndUserId(Long sessionId, Long userId);
 
     List<StudySession> findByUserIdOrderByStartTimeDesc(Long userId);
+
+    Optional<StudySession> findFirstByUserIdAndEndTimeIsNullOrderByStartTimeDesc(Long userId);
 }

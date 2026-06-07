@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +45,21 @@ public class StudySessionService {
         session.end(LocalDateTime.now());
         pythonVisionClient.stopWebcam(sessionId);
         return SessionResponse.from(session);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<SessionResponse> getActiveSession(Long userId) {
+        return studySessionRepository
+                .findFirstByUserIdAndEndTimeIsNullOrderByStartTimeDesc(userId)
+                .map(SessionResponse::from);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SessionResponse> getSessions(Long userId) {
+        return studySessionRepository.findByUserIdOrderByStartTimeDesc(userId)
+                .stream()
+                .map(SessionResponse::from)
+                .toList();
     }
 
     @Transactional
