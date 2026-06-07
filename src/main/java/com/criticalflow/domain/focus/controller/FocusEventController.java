@@ -1,5 +1,6 @@
 package com.criticalflow.domain.focus.controller;
 
+import com.criticalflow.domain.focus.dto.FocusEventCreateRequest;
 import com.criticalflow.domain.focus.dto.FocusEventResponse;
 import com.criticalflow.domain.focus.service.FocusEventService;
 import com.criticalflow.global.exception.ErrorResponse;
@@ -17,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+
 import java.util.List;
 
 @Tag(name = "Focus Event", description = "집중도 이벤트 조회 API")
@@ -26,6 +29,27 @@ import java.util.List;
 public class FocusEventController {
 
     private final FocusEventService focusEventService;
+
+    @Operation(
+            summary = "집중 이탈 이벤트 저장",
+            description = "Python AI 서버 또는 ESP32에서 감지한 집중 이탈 이벤트를 저장합니다. 내부 서버 전용 API입니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "이벤트 저장 성공"),
+            @ApiResponse(responseCode = "404", description = "세션을 찾을 수 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"SESSION_NOT_FOUND\",\"message\":\"학습 세션을 찾을 수 없습니다.\"}")))
+    })
+    @PostMapping
+    public ResponseEntity<FocusEventResponse> createEvent(
+            @Parameter(description = "이벤트를 기록할 세션 ID", required = true) @PathVariable Long sessionId,
+            @RequestBody FocusEventCreateRequest request
+    ) {
+        FocusEventResponse response = focusEventService.createEvent(sessionId, request);
+        return ResponseEntity
+                .created(URI.create("/api/v1/sessions/" + sessionId + "/focus-events"))
+                .body(response);
+    }
 
     @Operation(
             summary = "집중도 이벤트 목록 조회",
