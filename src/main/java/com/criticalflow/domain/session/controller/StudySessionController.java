@@ -92,7 +92,8 @@ public class StudySessionController {
 
     @Operation(
             summary = "학습 세션 시작",
-            description = "새 학습 세션을 시작합니다. 현재 시각이 startTime으로 기록됩니다.",
+            description = "새 학습 세션을 시작합니다. 현재 시각이 startTime으로 기록됩니다. "
+                    + "Python 비전 서버 연결에 실패하더라도 세션은 정상 생성됩니다.",
             security = @SecurityRequirement(name = "bearerAuth")
     )
     @ApiResponses({

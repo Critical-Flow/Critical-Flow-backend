@@ -36,6 +36,9 @@ public class FocusEventController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "이벤트 저장 성공"),
+            @ApiResponse(responseCode = "400", description = "필수 필드 누락 (eventType, durationSec)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = "{\"code\":\"INVALID_REQUEST_BODY\",\"message\":\"요청 데이터가 제약 조건을 위반했습니다.\"}"))),
             @ApiResponse(responseCode = "404", description = "세션을 찾을 수 없음",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class),
                             examples = @ExampleObject(value = "{\"code\":\"SESSION_NOT_FOUND\",\"message\":\"학습 세션을 찾을 수 없습니다.\"}")))
