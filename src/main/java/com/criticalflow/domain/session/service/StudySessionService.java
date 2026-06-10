@@ -33,7 +33,6 @@ public class StudySessionService {
         return SessionResponse.from(saved);
     }
 
-    @Transactional
     public SessionResponse endSession(Long userId, Long sessionId) {
         StudySession session = studySessionRepository.findBySessionIdAndUserId(sessionId, userId)
                 .orElseThrow(() -> new DomainException(ErrorCode.SESSION_NOT_FOUND));
@@ -43,8 +42,9 @@ public class StudySessionService {
         }
 
         session.end(LocalDateTime.now());
-        pythonVisionClient.stopWebcam(sessionId);
-        return SessionResponse.from(session);
+        studySessionRepository.save(session);     // TX 1: endTime 먼저 커밋
+        pythonVisionClient.stopWebcam(sessionId); // Python이 vision 결과 DB에 저장
+        return getSession(userId, sessionId);      // TX 2: 새 트랜잭션으로 최신 데이터 조회
     }
 
     @Transactional(readOnly = true)
