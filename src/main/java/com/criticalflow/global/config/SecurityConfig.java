@@ -60,7 +60,9 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "https://critical-flow-frontend-z1ch.vercel.app"
+                "https://critical-flow-frontend-z1ch.vercel.app",
+                "https://www.aice-edu.site",
+                "https://aice-edu.site"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
